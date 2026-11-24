@@ -27,7 +27,7 @@
 2. اضغط **New Application**، اكتب اسما، ووافق على الشروط.
 3. من القائمة اليسار افتح **Bot**.
 4. اضغط **Reset Token** وأكّد، ثم اضغط **Copy**. ⚠️ التوكن يظهر **مرة وحدة بس**. إذا ضاع ولّد غيره.
-5. افتح البرنامج، والصق التوكن في خانة **توكن البوت**، واضغط **حفظ وتشغيل**. البرنامج يحفظه عندك على جهازك، وما تحتاج تلصقه مرة ثانية.
+5. افتح البرنامج، والصق التوكن في خانة **توكن البوت**، واضغط **حفظ وتشغيل**. البرنامج يحفظه عندك على جهازك، وكل مرة تفتح البرنامج بعدها يشغّل البوت ويفتح اللوحة تلقائيا.
 6. إذا قال لك "التوكن غير صحيح": تأكد إنك نسخت التوكن وليس رابطا، وإنه نص طويل فيه نقطتين، وبدون مسافات.
 
 > 🔒 **لا تشارك التوكن مع أي أحد**، ولا تنشره في جيت هاب أو في ديسكورد. أي شخص عنده التوكن يتحكم ببوتك. إذا تسرّب، اضغط **Reset Token** فورا.
@@ -43,7 +43,7 @@ https://discord.com/oauth2/authorize?client_id=YOUR_APPLICATION_ID&scope=bot%20a
 الصلاحيات اللي يطلبها: دخول القناة، الكلام، رؤية القنوات، إرسال الرسائل، تضمين الروابط، إرفاق الملفات. **ما تحتاج تفعّل أي Privileged Intent.**
 
 ### تنزيل yt-dlp
-لتشغيل الروابط، اضغط زر **تنزيل** عند "أداة التحميل (yt-dlp)" في شاشة الإعدادات. يحمّلها من GitHub الرسمي. وإذا وقف يوتيوب بعد فترة اضغط الزر مرة ثانية لتحديثها. أما **ffmpeg** (للتشغيل والتحويل) فهو مدمج داخل البرنامج، ما تحتاج تثبته (عبر حزمة `ffmpeg-static`، وهي تنزّل ملف ffmpeg منفصل تحت رخصته الخاصة).
+ما تحتاج تسوي شيء: البرنامج ينزّل yt-dlp **تلقائيا** أول ما تفتحه (من GitHub الرسمي)، ويحدّثه تلقائيا كل أسبوع. وإذا وقف يوتيوب قبلها، اضغط **تحديث الآن** في شاشة الإعدادات. أما **ffmpeg** (للتشغيل والتحويل) فهو مدمج داخل البرنامج، ما تحتاج تثبته (عبر حزمة `ffmpeg-static`، وهي تنزّل ملف ffmpeg منفصل تحت رخصته الخاصة).
 
 ### الاستخدام
 - **من البرنامج:** اختر السيرفر والروم من فوق، واضغط **ادخل الروم**، والصق رابطا أو اكتب اسم أغنية واضغط **تشغيل**.
@@ -104,7 +104,7 @@ Everyone needs their own bot. The **token** is the bot's secret key; it's what c
 2. Click **New Application**, name it, accept the terms.
 3. Open **Bot** in the left menu.
 4. Click **Reset Token**, confirm, then **Copy**. ⚠️ The token is shown **only once**. If you lose it, reset again.
-5. Open the app, paste the token into **Bot token**, click **Save & start**. It's stored locally on your PC.
+5. Open the app, paste the token into **Bot token**, click **Save & start**. It is stored locally on your PC, and from then on the app starts the bot and opens the panel automatically.
 6. If it says the token is wrong: make sure you copied the token, not a link; it's one long string with two dots and no spaces.
 
 > 🔒 **Never share your token**, and never commit it to GitHub or post it on Discord. Anyone with it controls your bot. If it leaks, click **Reset Token** immediately.
@@ -120,7 +120,7 @@ https://discord.com/oauth2/authorize?client_id=YOUR_APPLICATION_ID&scope=bot%20a
 **No Privileged Gateway Intents are required.**
 
 ### Download yt-dlp
-Click **Download** next to "yt-dlp" on the settings screen. It's fetched from the official GitHub releases. If YouTube stops working later, click it again to update.
+Nothing to do: the app downloads yt-dlp **automatically** on first launch (from the official GitHub releases) and refreshes it weekly. If YouTube breaks sooner, click **Update now** on the settings screen.
 
 ### Usage
 - **In the app:** choose server + voice channel, click **Join**, paste a link or type a song name, click **Play**.

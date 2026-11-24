@@ -9,18 +9,20 @@
 input,button{font:inherit;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px 12px;width:100%}
 button{cursor:pointer;width:auto}button.p{background:var(--acc);border-color:var(--acc);color:#fff}button:disabled{opacity:.5}
 .row{display:flex;gap:8px}.row input{flex:1}.ok{color:var(--ok)}.bad{color:var(--bad)}
-a{color:var(--acc)}
+a{color:var(--acc)}.hide{display:none}
 </style></head><body><div class="box">
 <h1>🎵 بوت الموسيقى</h1><div class="mut">إعداد سريع، مرة وحدة بس.</div>
 
 <div class="card"><div class="step"><span id="s1">①</span> توكن البوت</div>
 <div class="mut" style="margin-bottom:8px">من <a href="https://discord.com/developers/applications" target="_blank">discord.com/developers</a> ← تطبيقك ← Bot ← Reset Token. لا تشاركه مع أحد.</div>
-<div class="row"><input id="token" type="password" placeholder="الصق التوكن هنا" autocomplete="off"><button class="p" id="go">حفظ وتشغيل</button></div>
-<div id="msg" class="mut" style="margin-top:8px"></div></div>
+<div id="conn" class="hide" style="margin-bottom:8px"><span class="ok" id="connText"></span> <button onclick="document.getElementById('tokrow').classList.remove('hide');this.remove()">تغيير التوكن</button></div>
+<div class="row" id="tokrow"><input id="token" type="password" placeholder="الصق التوكن هنا" autocomplete="off"><button class="p" id="go">حفظ وتشغيل</button></div>
+<div id="msg" class="mut" style="margin-top:8px"></div>
+<div class="mut" style="margin-top:6px">تدخله مرة وحدة بس، والبرنامج يحفظه ويفتح اللوحة تلقائي كل مرة.</div></div>
 
 <div class="card"><div class="step"><span id="s2">②</span> أداة التحميل (yt-dlp)</div>
-<div class="mut" style="margin-bottom:8px">تحتاجها لتشغيل روابط يوتيوب وتيك توك وانستغرام. تنزل من GitHub الرسمي (~18MB).</div>
-<div class="row" style="align-items:center"><button id="dl">⬇ تنزيل</button><span id="dlmsg" class="mut"></span></div></div>
+<div class="mut" style="margin-bottom:8px">تنزل وتتحدّث تلقائيا، ما تحتاج تسوي شيء. (الزر تحت لو تبي تحدّثها الحين.)</div>
+<div class="row" style="align-items:center"><button id="dl">🔄 تحديث الآن</button><span id="dlmsg" class="mut"></span></div></div>
 
 <div class="card row" style="align-items:center;justify-content:space-between">
 <span class="mut" id="status"></span><span><button id="dash">فتح اللوحة</button> <button id="folder">📁</button></span></div>
@@ -30,10 +32,12 @@ const $=id=>document.getElementById(id);
 async function refresh(){
   const s=await app.state();
   $('s1').textContent=s.hasToken?'✅':'①';$('s2').textContent=s.hasYtdlp?'✅':'②';
-  $('dl').textContent=s.hasYtdlp?'تحديث':'⬇ تنزيل';
   $('status').textContent=s.running?`البوت شغال: ${s.tag}`:'البوت غير شغال';
   $('dash').disabled=!s.running;
+  if(s.hasToken&&s.running){$('conn').classList.remove('hide');$('connText').textContent=`✅ متصل: ${s.tag}`;$('tokrow').classList.add('hide')}
 }
+const urlErr=new URLSearchParams(location.search).get('err');
+if(urlErr){$('msg').className='bad';$('msg').textContent='❌ '+urlErr}
 $('go').onclick=async()=>{
   $('go').disabled=true;$('msg').className='mut';$('msg').textContent='جاري الاتصال...';
   const r=await app.saveToken($('token').value);

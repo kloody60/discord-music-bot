@@ -25,8 +25,28 @@ const ytPath = () => path.join(dataDir, 'bin', process.platform === 'win32' ? 'y
 
 let win, botStarted = false, botTag = null;
 
-function showSetup() { win.loadFile(path.join(here, 'setup.html')); }
+function showSetup(err) { win.loadFile(path.join(here, 'setup.html'), { query: err ? { err } : {} }); }
+function showLoading(m) { win.loadFile(path.join(here, 'loading.html'), { query: { m } }); }
 function showDashboard() { win.loadURL(`http://127.0.0.1:${process.env.PORT}/`); }
+
+const errText = e => /invalid token|TokenInvalid/i.test(e.message)
+  ? 'التوكن غير صحيح. ولّد توكن جديد من Reset Token وانسخه كامل'
+  : /disallowed intents/i.test(e.message) ? 'ديسكورد رفض الاتصال (Intents): ' + e.message : e.message;
+
+// ---- yt-dlp: ينزل تلقائي، ويتحدث تلقائي كل أسبوع
+async function downloadYtdlp() {
+  const name = process.platform === 'win32' ? 'yt-dlp.exe' : process.platform === 'darwin' ? 'yt-dlp_macos' : 'yt-dlp';
+  const res = await fetch(`https://github.com/yt-dlp/yt-dlp/releases/latest/download/${name}`, { redirect: 'follow' });
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  const tmp = ytPath() + '.part';
+  await pipeline(Readable.fromWeb(res.body), fs.createWriteStream(tmp, { mode: 0o755 }));
+  fs.renameSync(tmp, ytPath());
+}
+let ytJob = null;
+const runYtdlpJob = () => (ytJob ??= downloadYtdlp()
+  .then(() => ({ ok: true }), e => ({ error: e.message }))
+  .finally(() => { ytJob = null; }));
+const ytAge = () => { try { return Date.now() - fs.statSync(ytPath()).mtimeMs; } catch { return Infinity; } };
 
 async function startBotWith(token) {
   const mod = await import(pathToFileURL(path.join(here, '..', 'src', 'index.js')).href);
@@ -55,28 +75,19 @@ ipcMain.handle('save-token', async (_e, token) => {
     showDashboard();
     return { ok: true };
   } catch (e) {
-    return { error: /token/i.test(e.message) ? 'التوكن غير صحيح' : e.message };
+    return { error: errText(e) };
   }
 });
 
 ipcMain.handle('open-dashboard', () => { if (botStarted) showDashboard(); return botStarted; });
 ipcMain.handle('open-folder', () => shell.openPath(dataDir));
 
-ipcMain.handle('download-ytdlp', async () => {
-  try {
-    const name = process.platform === 'win32' ? 'yt-dlp.exe' : process.platform === 'darwin' ? 'yt-dlp_macos' : 'yt-dlp';
-    const res = await fetch(`https://github.com/yt-dlp/yt-dlp/releases/latest/download/${name}`, { redirect: 'follow' });
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const tmp = ytPath() + '.part';
-    await pipeline(Readable.fromWeb(res.body), fs.createWriteStream(tmp, { mode: 0o755 }));
-    fs.renameSync(tmp, ytPath());
-    return { ok: true };
-  } catch (e) { return { error: e.message }; }
-});
+ipcMain.handle('download-ytdlp', () => runYtdlpJob());
 
 app.whenReady().then(async () => {
   win = new BrowserWindow({
     width: 1100, height: 780, title: 'بوت الموسيقى', autoHideMenuBar: true,
+    icon: path.join(here, '..', 'build', 'icon.png'),
     webPreferences: { preload: path.join(here, 'preload.cjs'), contextIsolation: true },
   });
   Menu.setApplicationMenu(Menu.buildFromTemplate([
@@ -88,10 +99,18 @@ app.whenReady().then(async () => {
   // أي رابط خارجي يفتح في المتصفح
   win.webContents.setWindowOpenHandler(({ url }) => { shell.openExternal(url); return { action: 'deny' }; });
 
+  showLoading('جاري تجهيز البرنامج...');
+  // أول مرة: ينزّل أداة التحميل لحاله. بعدها يحدّثها بالخلفية كل أسبوع.
+  if (!fs.existsSync(ytPath())) {
+    showLoading('جاري تنزيل أداة التحميل (مرة وحدة بس)...');
+    await runYtdlpJob();
+  } else if (ytAge() > 7 * 864e5) runYtdlpJob();
+
+  // التوكن محفوظ؟ يشغّل البوت ويفتح اللوحة على طول
   const token = readCfg().token;
   if (token) {
-    showSetup();
-    try { await startBotWith(token); showDashboard(); } catch { showSetup(); }
+    showLoading('جاري تشغيل البوت...');
+    try { await startBotWith(token); showDashboard(); } catch (e) { showSetup(errText(e)); }
   } else showSetup();
 });
 

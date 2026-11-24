@@ -35,11 +35,13 @@
       "electron/**",
       "src/**",
       "public/**",
+      "build/icon.png",
       "package.json"
     ],
     "win": {
       "target": "nsis",
-      "signAndEditExecutable": false
+      "icon": "build/icon.ico",
+      "signExecutable": false
     },
     "nsis": {
       "oneClick": false,
@@ -49,7 +51,10 @@
       "createStartMenuShortcut": true,
       "shortcutName": "بوت الموسيقى",
       "multiLanguageInstaller": true,
-      "displayLanguageSelector": true
+      "displayLanguageSelector": true,
+      "installerIcon": "build/icon.ico",
+      "uninstallerIcon": "build/icon.ico",
+      "installerHeaderIcon": "build/icon.ico"
     },
     "asarUnpack": [
       "node_modules/ffmpeg-static/**"
