@@ -5,4 +5,6 @@ contextBridge.exposeInMainWorld('app', {
   downloadYtdlp: () => ipcRenderer.invoke('download-ytdlp'),
   openDashboard: () => ipcRenderer.invoke('open-dashboard'),
   openFolder: () => ipcRenderer.invoke('open-folder'),
+  version: () => ipcRenderer.invoke('version'),
+  checkUpdate: () => ipcRenderer.invoke('check-update'),
 });

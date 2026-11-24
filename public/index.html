@@ -225,6 +225,9 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
       <div class="card" id="tokCard"><h3>توكن البوت</h3>
         <div class="mut small" style="margin-bottom:10px">تغيير التوكن يحتاج إعادة تشغيل البرنامج.</div>
         <div class="row"><input id="newtok" type="password" placeholder="الصق التوكن الجديد" autocomplete="off"><button class="btn pri" onclick="saveTok()">حفظ</button></div></div>
+      <div class="card" id="updCard"><h3>التحديثات</h3>
+        <div class="mut small" style="margin-bottom:10px">البرنامج يشيّك على التحديثات لحاله عند الفتح. تقدر تشيّك يدويا من هنا.</div>
+        <div class="row"><span class="tag" id="verTag">...</span><button class="btn" onclick="checkUpd()">تحقق من التحديث</button><span class="mut small" id="updMsg"></span></div></div>
       <div class="card"><h3>البيانات</h3>
         <div class="mut small" style="margin-bottom:10px">المكتبة والأصوات المحفوظة والإعدادات.</div>
         <button class="btn" onclick="window.app&&app.openFolder()"><svg class="i"><use href="#i-folder"/></svg>فتح مجلد البيانات</button></div>
@@ -382,8 +385,13 @@ async function refreshGuilds(){
     pickGuild();renderServers();toast(`عدد السيرفرات: ${guilds.length}`)}catch(e){fail(e)}}
 async function loadSettings(){
   renderServers();
-  if(!window.app){$('tokCard').classList.add('hide');return}
+  if(!window.app){$('tokCard').classList.add('hide');$('updCard').classList.add('hide');return}
+  app.version().then(v=>$('verTag').textContent='الإصدار '+v.version);
   const s=await app.state();$('setTag').textContent=s.running?`متصل: ${s.tag}`:'غير متصل';$('botTag').textContent=s.running?s.tag:'غير متصل'}
+async function checkUpd(){
+  $('updMsg').textContent='جاري التحقق...';
+  const r=await app.checkUpdate();
+  $('updMsg').textContent=r.dev?'نسخة التطوير: ما فيه تحديث تلقائي':r.error?r.error:r.newer?`فيه نسخة جديدة ${r.latest}، تنزل الحين وتطلع لك رسالة لما تجهز`:'أنت على آخر نسخة ✓'}
 async function saveTok(){
   const r=await app.saveToken($('newtok').value);
   if(r.error)return fail(new Error(r.error));

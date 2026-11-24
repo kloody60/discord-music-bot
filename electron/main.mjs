@@ -1,4 +1,6 @@
-import { app, BrowserWindow, ipcMain, Menu, shell } from 'electron';
+import { app, BrowserWindow, ipcMain, Menu, shell, dialog } from 'electron';
+import updaterPkg from 'electron-updater';
+const { autoUpdater } = updaterPkg;
 import path from 'node:path';
 import fs from 'node:fs';
 import { Readable } from 'node:stream';
@@ -79,6 +81,30 @@ ipcMain.handle('save-token', async (_e, token) => {
   }
 });
 
+// ---- التحديث الداخلي (من GitHub Releases)
+autoUpdater.autoDownload = true;
+autoUpdater.autoInstallOnAppQuit = true;
+let updateReady = null;
+autoUpdater.on('update-downloaded', async info => {
+  updateReady = info.version;
+  const r = await dialog.showMessageBox(win, {
+    type: 'info', title: 'تحديث جاهز', buttons: ['إعادة التشغيل الآن', 'لاحقا'], defaultId: 0, cancelId: 1,
+    message: `نزلت النسخة ${info.version}`, detail: 'أعد تشغيل البرنامج لتطبيق التحديث. (وإذا اخترت لاحقا، يتطبق لما تقفل البرنامج.)',
+  });
+  if (r.response === 0) autoUpdater.quitAndInstall();
+});
+autoUpdater.on('error', e => console.error('updater:', e.message));
+const checkUpdates = () => app.isPackaged ? autoUpdater.checkForUpdates().catch(() => null) : Promise.resolve(null);
+
+ipcMain.handle('version', () => ({ version: app.getVersion(), packaged: app.isPackaged, updateReady }));
+ipcMain.handle('check-update', async () => {
+  if (!app.isPackaged) return { dev: true };
+  const r = await checkUpdates();
+  if (!r) return { error: 'تعذر الاتصال بخادم التحديثات' };
+  const latest = r.updateInfo.version;
+  return { latest, current: app.getVersion(), newer: latest !== app.getVersion() };
+});
+
 ipcMain.handle('open-dashboard', () => { if (botStarted) showDashboard(); return botStarted; });
 ipcMain.handle('open-folder', () => shell.openPath(dataDir));
 
@@ -115,6 +141,10 @@ app.whenReady().then(async () => {
     showLoading('جاري تشغيل البوت...');
     try { await startBotWith(token); showDashboard(); } catch (e) { showSetup(errText(e)); }
   } else showSetup();
+
+  // يشيّك على التحديثات عند الفتح، وكل 6 ساعات
+  setTimeout(checkUpdates, 8000);
+  setInterval(checkUpdates, 6 * 3600 * 1000);
 });
 
 app.on('window-all-closed', () => app.quit());
