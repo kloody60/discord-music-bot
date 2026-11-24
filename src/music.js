@@ -4,6 +4,7 @@ import {
   getVoiceConnection,
 } from '@discordjs/voice';
 import fs from 'node:fs';
+import { spawn } from 'node:child_process';
 import { resolve as resolveQuery, streamAudio } from './ytdlp.js';
 import { libraryPath } from './library.js';
 
@@ -143,7 +144,17 @@ class GuildQueue {
     emit(this.guild.id);
   }
 
-  cleanupProc() { try { this.proc?.kill(); } catch {} this.proc = null; }
+  cleanupProc() {
+    const p = this.proc;
+    this.proc = null;
+    if (!p) return;
+    try {
+      // على ويندوز yt-dlp يشغّل عملية فرعية، فنقتل الشجرة كلها
+      if (process.platform === 'win32' && p.pid)
+        spawn('taskkill', ['/pid', String(p.pid), '/T', '/F'], { windowsHide: true, stdio: 'ignore' });
+      else p.kill();
+    } catch {}
+  }
 
   destroy() {
     this.stop();
@@ -163,6 +174,12 @@ class GuildQueue {
     };
   }
 }
+
+/** يوقف كل شيء ويقتل عمليات yt-dlp (يُستدعى عند إغلاق البرنامج أو تسجيل الخروج) */
+export function shutdown() {
+  for (const q of [...queues.values()]) { try { q.destroy(); } catch {} }
+}
+process.on('exit', () => { for (const q of queues.values()) q.cleanupProc(); });
 
 export function getQueue(guild) {
   let q = queues.get(guild.id);

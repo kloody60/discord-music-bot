@@ -50,19 +50,53 @@ const runYtdlpJob = () => (ytJob ??= downloadYtdlp()
   .finally(() => { ytJob = null; }));
 const ytAge = () => { try { return Date.now() - fs.statSync(ytPath()).mtimeMs; } catch { return Infinity; } };
 
+let botMod = null;
 async function startBotWith(token) {
-  const mod = await import(pathToFileURL(path.join(here, '..', 'src', 'index.js')).href);
+  const mod = botMod = await import(pathToFileURL(path.join(here, '..', 'src', 'index.js')).href);
   const timeout = new Promise((_, rej) => setTimeout(() => rej(new Error('انتهت مهلة الاتصال')), 30000));
   await Promise.race([mod.startBot(token), timeout]);
   botTag = await Promise.race([mod.ready, timeout]);
   botStarted = true;
 }
 
-ipcMain.handle('state', () => ({
-  hasToken: !!readCfg().token, hasYtdlp: fs.existsSync(ytPath()),
-  running: botStarted, tag: botTag, dataDir,
-}));
+// ---- عدة بوتات: القائمة محفوظة في config.json، وبوت واحد نشط. التبديل = إعادة تشغيل البرنامج.
+function loadBots() {
+  const c = readCfg();
+  if (!c.bots) { // ترحيل من النسخ القديمة (توكن واحد)
+    c.bots = c.token ? [{ id: 'b1', name: '', token: c.token }] : [];
+    c.active = c.bots[0]?.id || null;
+    delete c.token;
+    writeCfg(c);
+  }
+  return c;
+}
+const botIdOf = t => { try { return Buffer.from(String(t).split('.')[0], 'base64').toString(); } catch { return String(t); } };
+const activeBot = c => c.bots.find(b => b.id === c.active) || c.bots[0] || null;
+function relaunch() {
+  try { botMod?.shutdown(); } catch {}
+  app.relaunch();
+  app.exit(0);
+}
 
+// يتحقق من التوكن عند ديسكورد بدون ما يشغّل البوت، ويرجّع اسم البوت
+async function checkToken(token) {
+  const r = await fetch('https://discord.com/api/v10/users/@me', { headers: { Authorization: 'Bot ' + token } });
+  if (r.status === 401) throw new Error('التوكن غير صحيح. ولّد توكن جديد من Reset Token وانسخه كامل');
+  if (!r.ok) throw new Error(`تعذر التحقق من التوكن (HTTP ${r.status})`);
+  const u = await r.json();
+  return u.username + (u.discriminator && u.discriminator !== '0' ? '#' + u.discriminator : '');
+}
+
+ipcMain.handle('state', () => {
+  const c = loadBots(), cur = activeBot(c);
+  return {
+    hasToken: c.bots.length > 0, hasYtdlp: fs.existsSync(ytPath()),
+    running: botStarted, tag: botTag, dataDir,
+    bots: c.bots.map(b => ({ id: b.id, name: b.name || '(بدون اسم)', active: b.id === cur?.id })),
+  };
+});
+
+// إضافة بوت (أول بوت يشتغل مباشرة، والباقي يتضافون للقائمة)
 ipcMain.handle('save-token', async (_e, token) => {
   token = String(token || '').trim();
   if (!token) return { error: 'اكتب التوكن' };
@@ -70,15 +104,42 @@ ipcMain.handle('save-token', async (_e, token) => {
     return { error: 'هذا رابط، مو توكن. التوكن تجيبه من صفحة Bot ← Reset Token' };
   if (token.length < 50 || /\s/.test(token))
     return { error: 'هذا ما يشبه التوكن (نص طويل بدون مسافات، فيه نقطتين)' };
-  if (botStarted) { writeCfg({ ...readCfg(), token }); return { restart: true }; }
-  try {
-    await startBotWith(token);
-    writeCfg({ ...readCfg(), token });
+  const c = loadBots();
+  const same = c.bots.find(b => botIdOf(b.token) === botIdOf(token)); // نفس البوت (التوكن الجديد بعد Reset يحل محل القديم)
+  if (same && same.token === token) return { error: 'هذا التوكن مضاف من قبل' };
+  let name;
+  try { name = await checkToken(token); } catch (e) { return { error: e.message }; }
+  const bot = same || { id: 'b' + Date.now().toString(36), name, token };
+  bot.token = token; bot.name = name;
+  if (!same) c.bots.push(bot);
+  if (!botStarted) {
+    try { await startBotWith(token); } catch (e) { return { error: errText(e) }; }
+    c.active = bot.id; writeCfg(c);
     showDashboard();
-    return { ok: true };
-  } catch (e) {
-    return { error: errText(e) };
+    return { ok: true, name, updated: !!same };
   }
+  writeCfg(c);
+  return { added: !same, updated: !!same, name };
+});
+
+ipcMain.handle('switch-bot', (_e, id) => {
+  const c = loadBots();
+  if (!c.bots.some(b => b.id === id)) return { error: 'البوت غير موجود' };
+  if (c.active === id && botStarted) return { ok: true };
+  c.active = id; writeCfg(c);
+  relaunch();
+  return { ok: true };
+});
+
+// حذف بوت (تسجيل خروج). لو كان هو النشط يرجع للبوت التالي أو لشاشة الربط
+ipcMain.handle('remove-bot', (_e, id) => {
+  const c = loadBots(), cur = activeBot(c);
+  c.bots = c.bots.filter(b => b.id !== id);
+  const wasActive = cur?.id === id;
+  if (wasActive) c.active = c.bots[0]?.id || null;
+  writeCfg(c);
+  if (wasActive) relaunch();
+  return { ok: true };
 });
 
 // ---- التحديث الداخلي (من GitHub Releases)
@@ -136,10 +197,14 @@ app.whenReady().then(async () => {
   } else if (ytAge() > 7 * 864e5) runYtdlpJob();
 
   // التوكن محفوظ؟ يشغّل البوت ويفتح اللوحة على طول
-  const token = readCfg().token;
-  if (token) {
+  const cfg = loadBots(), bot = activeBot(cfg);
+  if (bot) {
     showLoading('جاري تشغيل البوت...');
-    try { await startBotWith(token); showDashboard(); } catch (e) { showSetup(errText(e)); }
+    try {
+      await startBotWith(bot.token);
+      if (!bot.name) { bot.name = botTag; writeCfg(cfg); }
+      showDashboard();
+    } catch (e) { showSetup(errText(e)); }
   } else showSetup();
 
   // يشيّك على التحديثات عند الفتح، وكل 6 ساعات
@@ -147,4 +212,5 @@ app.whenReady().then(async () => {
   setInterval(checkUpdates, 6 * 3600 * 1000);
 });
 
+app.on('before-quit', () => { try { botMod?.shutdown(); } catch {} });
 app.on('window-all-closed', () => app.quit());

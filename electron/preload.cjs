@@ -2,6 +2,8 @@ const { contextBridge, ipcRenderer } = require('electron');
 contextBridge.exposeInMainWorld('app', {
   state: () => ipcRenderer.invoke('state'),
   saveToken: t => ipcRenderer.invoke('save-token', t),
+  switchBot: id => ipcRenderer.invoke('switch-bot', id),
+  removeBot: id => ipcRenderer.invoke('remove-bot', id),
   downloadYtdlp: () => ipcRenderer.invoke('download-ytdlp'),
   openDashboard: () => ipcRenderer.invoke('open-dashboard'),
   openFolder: () => ipcRenderer.invoke('open-folder'),

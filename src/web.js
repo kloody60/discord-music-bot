@@ -136,6 +136,9 @@ export function startWeb(client) {
     return { saved };
   }));
 
+  // أي مسار API غير موجود يرجّع رسالة واضحة بدل 404 صامت
+  app.use('/api', (req, res) => res.status(404).json({ error: `المسار غير موجود: ${req.method} /api${req.path}` }));
+
   const port = Number(process.env.PORT) || 3000;
   const host = process.env.HOST || '127.0.0.1';
   app.listen(port, host, () => console.log(`لوحة التحكم: http://${host === '0.0.0.0' ? 'localhost' : host}:${port}`));

@@ -180,3 +180,4 @@ if (process.argv[1] && import.meta.url.endsWith(process.argv[1].replace(/\\/g, '
   if (!process.env.DISCORD_TOKEN) { console.error('حط DISCORD_TOKEN في .env'); process.exit(1); }
   startBot(process.env.DISCORD_TOKEN);
 }
+export { shutdown } from './music.js';

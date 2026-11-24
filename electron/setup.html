@@ -12,7 +12,7 @@ body{background:var(--bg);color:var(--fg);font-family:"Segoe UI Variable Text","
 .logo{width:84px;height:84px;margin:0 auto 18px;border-radius:24px;background:#0f1115;border:1px solid var(--line2);display:grid;place-items:center;box-shadow:0 20px 60px rgba(34,211,238,.18)}
 h1{font-size:28px;font-weight:700;margin-bottom:6px}
 .sub{color:var(--mut);margin-bottom:26px}
-.card{background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.02));border:1px solid var(--line);border-radius:20px;padding:22px;text-align:start;backdrop-filter:blur(10px)}
+.card{background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.02));border:1px solid var(--line);border-radius:20px;padding:22px;text-align:start;backdrop-filter:blur(10px);margin-bottom:14px}
 .steps{display:flex;flex-direction:column;gap:10px;margin-bottom:18px;color:var(--mut);font-size:13px}
 .steps div{display:flex;gap:10px;align-items:center}
 .steps b{width:22px;height:22px;border-radius:50%;background:var(--s3);color:var(--c1);display:grid;place-items:center;font-size:12px;flex:none}
@@ -24,12 +24,17 @@ button:hover{border-color:var(--c1)}
 .pri{width:100%;border:0;background:var(--grad);color:#06080c;font-weight:700;font-size:15px}
 .pri:hover{filter:brightness(1.1)}
 .pri:disabled{opacity:.55;cursor:default}
+.sm{padding:7px 12px;font-size:13px;border-radius:10px}
+.danger{color:var(--bad)}.danger:hover{border-color:var(--bad)}
 .msg{min-height:20px;margin-top:12px;font-size:13px;text-align:center}
 .bad{color:var(--bad)}.ok{color:var(--ok)}.mut{color:var(--mut)}
-.foot{display:flex;gap:10px;justify-content:center;margin-top:18px}
+.foot{display:flex;gap:10px;justify-content:center;margin-top:18px;flex-wrap:wrap}
 .hide{display:none}
 .ok-card{text-align:center}
 .ok-card .big{font-size:18px;font-weight:700;margin:6px 0 16px}
+.bots{display:flex;flex-direction:column;gap:8px;margin-top:16px;text-align:start}
+.bot{display:flex;gap:8px;align-items:center;padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.04);border:1px solid var(--line)}
+.bot .n{flex:1;font-weight:600}
 </style></head><body>
 <div class="tb"></div>
 <div class="wrap"><div class="box">
@@ -46,35 +51,43 @@ button:hover{border-color:var(--c1)}
     <input id="token" type="password" placeholder="الصق توكن البوت هنا" autocomplete="off">
     <button class="pri" id="go">ربط وتشغيل</button>
     <div class="msg" id="msg"></div>
+    <div class="bots" id="savedBots"></div>
   </div>
 
   <div class="card ok-card hide" id="done">
     <div class="ok">متصل</div>
     <div class="big" id="tag"></div>
     <button class="pri" id="dash">فتح لوحة التحكم</button>
-    <div class="foot"><button id="change">تغيير التوكن</button><button id="folder">فتح مجلد البيانات</button></div>
+    <div class="foot"><button class="danger" id="logout">تسجيل الخروج</button><button id="folder">فتح مجلد البيانات</button></div>
   </div>
 </div></div>
 <script>
 const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let cur=null;
 async function refresh(){
-  const s=await app.state();
+  const s=await app.state();cur=s;
   const connected=s.hasToken&&s.running;
   $('form').classList.toggle('hide',connected);$('done').classList.toggle('hide',!connected);
   if(connected)$('tag').textContent=s.tag;
+  // بوتات محفوظة بس ما اشتغلت (مثلا توكن منتهي): نعرضها عشان تحذفها أو تبدّل
+  $('savedBots').innerHTML=(!s.running&&s.bots.length)?'<div class="mut" style="font-size:12px">بوتات محفوظة:</div>'+s.bots.map(b=>`<div class="bot"><span class="n">${esc(b.name)}</span>${b.active?'':`<button class="sm" onclick="sw('${b.id}')">تبديل</button>`}<button class="sm danger" onclick="rm('${b.id}')">حذف</button></div>`).join(''):'';
 }
+const sw=async id=>{await app.switchBot(id)};
+const rm=async id=>{if(confirm('حذف هذا البوت من البرنامج؟')){await app.removeBot(id);refresh()}};
 const urlErr=new URLSearchParams(location.search).get('err');
 if(urlErr){$('msg').className='msg bad';$('msg').textContent=urlErr}
 $('go').onclick=async()=>{
   $('go').disabled=true;$('msg').className='msg mut';$('msg').textContent='جاري الاتصال...';
   const r=await app.saveToken($('token').value);
   if(r.error){$('msg').className='msg bad';$('msg').textContent=r.error}
-  else if(r.restart){$('msg').className='msg ok';$('msg').textContent='تم الحفظ. أعد تشغيل البرنامج لتطبيق التوكن الجديد'}
   $('go').disabled=false;refresh();
 };
 $('token').addEventListener('keydown',e=>e.key==='Enter'&&$('go').click());
 $('dash').onclick=()=>app.openDashboard();
 $('folder').onclick=()=>app.openFolder();
-$('change').onclick=()=>{$('form').classList.remove('hide');$('done').classList.add('hide');$('token').focus()};
+$('logout').onclick=async()=>{
+  const a=cur&&cur.bots.find(b=>b.active);
+  if(confirm(`تسجيل الخروج من "${a?a.name:'البوت'}"؟ يتحذف توكنه من البرنامج.`))await app.removeBot(a.id)};
 refresh();
 </script></body></html>

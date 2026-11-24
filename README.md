@@ -14,6 +14,7 @@
 - 🔊 **سحب أصوات الديسكورد (Soundboard):** حمّل أصوات أي سيرفر فيه البوت، أو شغّلها بالبوت مباشرة.
 - 🎛️ **لوحة تحكم:** اختر السيرفر والروم الصوتي، تحكم بالتخطي والإيقاف والتكرار والصوت والخلط والقائمة.
 - 🔘 **أزرار داخل ديسكورد** تحت رسالة "يشتغل الآن" + أوامر سلاش (`/play` و`/skip` و`/queue`...).
+- 🤖 **عدة بوتات:** أضف أكثر من بوت وبدّل بينهم، وزر تسجيل خروج يحذف التوكن.
 - 🔄 **تحديث تلقائي:** البرنامج يشيّك على النسخ الجديدة من صفحة Releases وينزّلها لحاله، وتطلع لك رسالة تعيد التشغيل.
 
 ### التثبيت
@@ -92,6 +93,7 @@ A Windows desktop app that runs a Discord music bot, controlled from a built-in 
 - 🔊 **Discord soundboard:** download any server's soundboard sounds (where the bot is a member), or play them through the bot directly.
 - 🎛️ **Control panel:** pick the server and voice channel; skip, pause, loop, volume, shuffle, queue.
 - 🔘 **In-Discord buttons** under the "now playing" message, plus slash commands.
+- 🤖 **Multiple bots:** add several bots and switch between them; log out removes a token.
 - 🔄 **Auto-update:** the app checks GitHub Releases for new versions, downloads them in the background and prompts you to restart.
 
 ### Install

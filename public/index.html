@@ -222,9 +222,10 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
         <div id="srvList" class="list"></div></div>
       <div class="card"><h3>حالة البوت</h3>
         <div class="row"><span class="tag" id="setTag">...</span></div></div>
-      <div class="card" id="tokCard"><h3>توكن البوت</h3>
-        <div class="mut small" style="margin-bottom:10px">تغيير التوكن يحتاج إعادة تشغيل البرنامج.</div>
-        <div class="row"><input id="newtok" type="password" placeholder="الصق التوكن الجديد" autocomplete="off"><button class="btn pri" onclick="saveTok()">حفظ</button></div></div>
+      <div class="card" id="tokCard"><h3>البوتات</h3>
+        <div class="mut small" style="margin-bottom:12px">تقدر تضيف أكثر من بوت وتبدّل بينهم. بوت واحد يشتغل في الوقت، والتبديل يعيد تشغيل البرنامج.</div>
+        <div id="botList" class="list" style="margin-bottom:14px"></div>
+        <div class="row"><input id="newtok" type="password" placeholder="الصق توكن بوت جديد" autocomplete="off"><button class="btn pri" onclick="saveTok()"><svg class="i"><use href="#i-plus"/></svg>إضافة بوت</button></div></div>
       <div class="card" id="updCard"><h3>التحديثات</h3>
         <div class="mut small" style="margin-bottom:10px">البرنامج يشيّك على التحديثات لحاله عند الفتح. تقدر تشيّك يدويا من هنا.</div>
         <div class="row"><span class="tag" id="verTag">...</span><button class="btn" onclick="checkUpd()">تحقق من التحديث</button><span class="mut small" id="updMsg"></span></div></div>
@@ -387,7 +388,12 @@ async function loadSettings(){
   renderServers();
   if(!window.app){$('tokCard').classList.add('hide');$('updCard').classList.add('hide');return}
   app.version().then(v=>$('verTag').textContent='الإصدار '+v.version);
-  const s=await app.state();$('setTag').textContent=s.running?`متصل: ${s.tag}`:'غير متصل';$('botTag').textContent=s.running?s.tag:'غير متصل'}
+  const s=await app.state();$('setTag').textContent=s.running?`متصل: ${s.tag}`:'غير متصل';$('botTag').textContent=s.running?s.tag:'غير متصل';
+  $('botList').innerHTML=s.bots.map(b=>`<div class="item"><span class="n"><b>${esc(b.name)}</b></span>${b.active?'<span class="tag" style="color:var(--ok)">نشط</span>':`<button class="btn sm pri" onclick="switchBot('${b.id}')">تبديل لهذا البوت</button>`}<button class="btn sm danger" onclick="removeBot('${b.id}','${esc(b.name).replace(/'/g,'')}',${b.active})">${ic('logout')}${b.active?'تسجيل خروج':'حذف'}</button></div>`).join('')||'<div class="empty">ما فيه بوتات</div>'}
+async function switchBot(id){toast('جاري التبديل وإعادة التشغيل...');await app.switchBot(id)}
+async function removeBot(id,name,active){
+  if(!confirm(active?`تسجيل الخروج من "${name}"؟ يتحذف توكنه من البرنامج، وتحتاج تضيفه من جديد لو تبيه.`:`حذف "${name}" من القائمة؟`))return;
+  await app.removeBot(id);if(!active){toast('تم الحذف');loadSettings()}}
 async function checkUpd(){
   $('updMsg').textContent='جاري التحقق...';
   const r=await app.checkUpdate();
@@ -395,7 +401,7 @@ async function checkUpd(){
 async function saveTok(){
   const r=await app.saveToken($('newtok').value);
   if(r.error)return fail(new Error(r.error));
-  $('newtok').value='';toast('تم الحفظ. أعد تشغيل البرنامج لتطبيق التوكن الجديد')}
+  $('newtok').value='';toast(r.updated?`تم تحديث توكن البوت: ${r.name}`:`تمت إضافة البوت: ${r.name}`);loadSettings()}
 
 const TITLES={music:'الموسيقى',lib:'مكتبتي',snd:'أصوات ديسكورد',set:'الإعدادات'};
 $('tabs').onclick=e=>{const b=e.target.closest('.nav');if(!b)return;const t=b.dataset.t;
