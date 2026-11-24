@@ -50,6 +50,11 @@ export function startWeb(client) {
   }))));
   app.get('/api/guilds/:gid/state', wrap(req => stateOf(guildOf(req))));
 
+  // رابط إضافة البوت لسيرفر جديد (يفتح صفحة ديسكورد الرسمية لاختيار السيرفر)
+  app.get('/api/invite', (req, res) => res.json({
+    url: `https://discord.com/oauth2/authorize?client_id=${client.application.id}&scope=bot%20applications.commands&permissions=3197952`,
+  }));
+
   // ---- بث الحالة (SSE)
   app.get('/api/events', (req, res) => {
     res.set({ 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache', Connection: 'keep-alive' });

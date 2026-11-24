@@ -152,6 +152,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
       <button class="nav" data-t="set"><svg class="i"><use href="#i-settings"/></svg><span>الإعدادات</span></button>
     </div>
     <div class="grow"></div>
+    <button class="btn pri" style="justify-content:center;margin-bottom:8px" onclick="addServer()"><svg class="i"><use href="#i-plus"/></svg><span>أضف البوت لسيرفر</span></button>
     <div class="chip"><i class="dot"></i><span id="botTag">البوت شغال</span></div>
   </aside>
 
@@ -211,6 +212,14 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
     </section>
 
     <section id="t-set" class="hide">
+      <div class="card"><h3><svg class="i"><use href="#i-login"/></svg>سيرفرات ديسكورد</h3>
+        <div class="mut small" style="margin-bottom:12px">البوت موجود في هذي السيرفرات. لإضافته لسيرفر جديد اضغط الزر، وتفتح لك صفحة ديسكورد الرسمية تسجّل دخولك فيها وتختار السيرفر (لازم تكون أدمن فيه).</div>
+        <div class="row" style="margin-bottom:12px">
+          <button class="btn pri" onclick="addServer()"><svg class="i"><use href="#i-plus"/></svg>أضف البوت لسيرفر</button>
+          <button class="btn" onclick="openDiscord()">فتح ديسكورد</button>
+          <button class="btn" onclick="refreshGuilds()">تحديث القائمة</button>
+        </div>
+        <div id="srvList" class="list"></div></div>
       <div class="card"><h3>حالة البوت</h3>
         <div class="row"><span class="tag" id="setTag">...</span></div></div>
       <div class="card" id="tokCard"><h3>توكن البوت</h3>
@@ -360,7 +369,19 @@ async function saveOne(i){try{await jpost('/api/sounds/save',{sounds:[sounds[i]]
 async function saveAll(){if(!sounds.length)return toast('حمّل قائمة أصوات أول');
   try{toast('جاري الحفظ...');const r=await jpost('/api/sounds/save',{sounds});toast(`تم حفظ ${r.saved.length} صوت`);loadLib()}catch(e){fail(e)}}
 
+async function addServer(){
+  try{const r=await api('/api/invite');window.open(r.url,'_blank');
+    toast('انفتحت صفحة ديسكورد. اختر السيرفر ووافق، وبعدها اضغط "تحديث القائمة"')}catch(e){fail(e)}}
+const openDiscord=()=>window.open('https://discord.com/app','_blank');
+function renderServers(){
+  $('srvList').innerHTML=guilds.length?guilds.map(g=>`<div class="item">${g.icon?`<img src="${esc(g.icon)}" style="width:40px;height:40px;border-radius:50%">`:`<div class="art" style="width:40px;height:40px;border-radius:50%;box-shadow:none">${esc(g.name[0]||'?')}</div>`}<span class="n">${esc(g.name)}</span><span class="mut small">${g.voice.length} روم صوتي</span></div>`).join(''):'<div class="empty">البوت مو في أي سيرفر بعد</div>'}
+async function refreshGuilds(){
+  try{guilds=await api('/api/guilds');const cur=$('guild').value;
+    $('guild').innerHTML=guilds.map(g=>`<option value="${g.id}">${esc(g.name)}</option>`).join('');
+    if(guilds.some(g=>g.id===cur))$('guild').value=cur;
+    pickGuild();renderServers();toast(`عدد السيرفرات: ${guilds.length}`)}catch(e){fail(e)}}
 async function loadSettings(){
+  renderServers();
   if(!window.app){$('tokCard').classList.add('hide');return}
   const s=await app.state();$('setTag').textContent=s.running?`متصل: ${s.tag}`:'غير متصل';$('botTag').textContent=s.running?s.tag:'غير متصل'}
 async function saveTok(){
