@@ -86,7 +86,10 @@ ipcMain.handle('download-ytdlp', () => runYtdlpJob());
 
 app.whenReady().then(async () => {
   win = new BrowserWindow({
-    width: 1100, height: 780, title: 'بوت الموسيقى', autoHideMenuBar: true,
+    width: 1180, height: 800, minWidth: 900, minHeight: 600, title: 'بوت الموسيقى', autoHideMenuBar: true,
+    backgroundColor: '#07090d',
+    titleBarStyle: 'hidden',
+    titleBarOverlay: { color: '#07090d', symbolColor: '#8a92a6', height: 40 },
     icon: path.join(here, '..', 'build', 'icon.png'),
     webPreferences: { preload: path.join(here, 'preload.cjs'), contextIsolation: true },
   });

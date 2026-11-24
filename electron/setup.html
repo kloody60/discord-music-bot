@@ -1,57 +1,80 @@
 <!doctype html>
-<html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>الإعدادات</title>
+<html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>بوت الموسيقى</title>
 <style>
-:root{--bg:#0f1115;--card:#181b22;--line:#262a34;--fg:#e8eaf0;--mut:#8b91a0;--acc:#5865f2;--ok:#3ba55d;--bad:#ed4245}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font-family:"Segoe UI",Tahoma,sans-serif;display:grid;place-items:center;min-height:100vh}
-.box{width:min(520px,92vw)}h1{font-size:22px;margin:0 0 4px}.mut{color:var(--mut);font-size:13px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin-top:14px}
-.step{display:flex;gap:8px;align-items:center;margin-bottom:8px;font-weight:600}
-input,button{font:inherit;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px 12px;width:100%}
-button{cursor:pointer;width:auto}button.p{background:var(--acc);border-color:var(--acc);color:#fff}button:disabled{opacity:.5}
-.row{display:flex;gap:8px}.row input{flex:1}.ok{color:var(--ok)}.bad{color:var(--bad)}
-a{color:var(--acc)}.hide{display:none}
-</style></head><body><div class="box">
-<h1>🎵 بوت الموسيقى</h1><div class="mut">إعداد سريع، مرة وحدة بس.</div>
+:root{--bg:#07090d;--s1:#0d1016;--s2:#131722;--s3:#1a1f2e;--line:rgba(255,255,255,.07);--line2:rgba(255,255,255,.13);--fg:#eef0f6;--mut:#8a92a6;--c1:#22d3ee;--c2:#f472b6;--bad:#fb5b6b;--ok:#34d399;--grad:linear-gradient(135deg,#22d3ee,#f472b6)}
+*{box-sizing:border-box;margin:0}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:"Segoe UI Variable Text","Segoe UI",Tahoma,sans-serif;font-size:14px;overflow:hidden;
+ background-image:radial-gradient(800px 480px at 80% -10%,rgba(34,211,238,.14),transparent 60%),radial-gradient(800px 480px at 0% 110%,rgba(244,114,182,.12),transparent 60%)}
+.tb{height:40px;-webkit-app-region:drag}
+.wrap{height:calc(100vh - 40px);display:grid;place-items:center;padding:20px;overflow:auto}
+.box{width:min(480px,100%);text-align:center}
+.logo{width:84px;height:84px;margin:0 auto 18px;border-radius:24px;background:#0f1115;border:1px solid var(--line2);display:grid;place-items:center;box-shadow:0 20px 60px rgba(34,211,238,.18)}
+h1{font-size:28px;font-weight:700;margin-bottom:6px}
+.sub{color:var(--mut);margin-bottom:26px}
+.card{background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.02));border:1px solid var(--line);border-radius:20px;padding:22px;text-align:start;backdrop-filter:blur(10px)}
+.steps{display:flex;flex-direction:column;gap:10px;margin-bottom:18px;color:var(--mut);font-size:13px}
+.steps div{display:flex;gap:10px;align-items:center}
+.steps b{width:22px;height:22px;border-radius:50%;background:var(--s3);color:var(--c1);display:grid;place-items:center;font-size:12px;flex:none}
+a{color:var(--c1);text-decoration:none}a:hover{text-decoration:underline}
+input{width:100%;background:var(--s1);border:1px solid var(--line2);border-radius:14px;padding:14px 16px;color:var(--fg);font:inherit;outline:0;margin-bottom:12px}
+input:focus{border-color:var(--c1);box-shadow:0 0 0 3px rgba(34,211,238,.12)}
+button{font:inherit;cursor:pointer;border-radius:14px;padding:13px 18px;border:1px solid var(--line2);background:var(--s2);color:var(--fg);transition:.15s}
+button:hover{border-color:var(--c1)}
+.pri{width:100%;border:0;background:var(--grad);color:#06080c;font-weight:700;font-size:15px}
+.pri:hover{filter:brightness(1.1)}
+.pri:disabled{opacity:.55;cursor:default}
+.msg{min-height:20px;margin-top:12px;font-size:13px;text-align:center}
+.bad{color:var(--bad)}.ok{color:var(--ok)}.mut{color:var(--mut)}
+.foot{display:flex;gap:10px;justify-content:center;margin-top:18px}
+.hide{display:none}
+.ok-card{text-align:center}
+.ok-card .big{font-size:18px;font-weight:700;margin:6px 0 16px}
+</style></head><body>
+<div class="tb"></div>
+<div class="wrap"><div class="box">
+  <div class="logo"><svg width="52" height="52" viewBox="0 0 120 120"><rect x="20" y="71" width="9" height="24" rx="4.5" fill="#22d3ee"/><rect x="34" y="49" width="9" height="46" rx="4.5" fill="#f472b6"/><rect x="48" y="29" width="9" height="66" rx="4.5" fill="#22d3ee"/><rect x="62" y="55" width="9" height="40" rx="4.5" fill="#f472b6"/><rect x="76" y="39" width="9" height="56" rx="4.5" fill="#22d3ee"/><rect x="90" y="65" width="9" height="30" rx="4.5" fill="#f472b6"/></svg></div>
+  <h1>بوت الموسيقى</h1>
+  <div class="sub">اربط بوتك مرة وحدة، وبعدها يشتغل لحاله</div>
 
-<div class="card"><div class="step"><span id="s1">①</span> توكن البوت</div>
-<div class="mut" style="margin-bottom:8px">من <a href="https://discord.com/developers/applications" target="_blank">discord.com/developers</a> ← تطبيقك ← Bot ← Reset Token. لا تشاركه مع أحد.</div>
-<div id="conn" class="hide" style="margin-bottom:8px"><span class="ok" id="connText"></span> <button onclick="document.getElementById('tokrow').classList.remove('hide');this.remove()">تغيير التوكن</button></div>
-<div class="row" id="tokrow"><input id="token" type="password" placeholder="الصق التوكن هنا" autocomplete="off"><button class="p" id="go">حفظ وتشغيل</button></div>
-<div id="msg" class="mut" style="margin-top:8px"></div>
-<div class="mut" style="margin-top:6px">تدخله مرة وحدة بس، والبرنامج يحفظه ويفتح اللوحة تلقائي كل مرة.</div></div>
+  <div class="card" id="form">
+    <div class="steps">
+      <div><b>1</b><span>افتح <a href="https://discord.com/developers/applications" target="_blank">بوابة المطورين</a> واختر تطبيقك</span></div>
+      <div><b>2</b><span>من <span style="color:var(--fg)">Bot</span> اضغط <span style="color:var(--fg)">Reset Token</span> وانسخ التوكن</span></div>
+      <div><b>3</b><span>الصقه هنا واضغط ربط</span></div>
+    </div>
+    <input id="token" type="password" placeholder="الصق توكن البوت هنا" autocomplete="off">
+    <button class="pri" id="go">ربط وتشغيل</button>
+    <div class="msg" id="msg"></div>
+  </div>
 
-<div class="card"><div class="step"><span id="s2">②</span> أداة التحميل (yt-dlp)</div>
-<div class="mut" style="margin-bottom:8px">تنزل وتتحدّث تلقائيا، ما تحتاج تسوي شيء. (الزر تحت لو تبي تحدّثها الحين.)</div>
-<div class="row" style="align-items:center"><button id="dl">🔄 تحديث الآن</button><span id="dlmsg" class="mut"></span></div></div>
-
-<div class="card row" style="align-items:center;justify-content:space-between">
-<span class="mut" id="status"></span><span><button id="dash">فتح اللوحة</button> <button id="folder">📁</button></span></div>
-</div>
+  <div class="card ok-card hide" id="done">
+    <div class="ok">متصل</div>
+    <div class="big" id="tag"></div>
+    <button class="pri" id="dash">فتح لوحة التحكم</button>
+    <div class="foot"><button id="change">تغيير التوكن</button><button id="folder">فتح مجلد البيانات</button></div>
+  </div>
+</div></div>
 <script>
 const $=id=>document.getElementById(id);
 async function refresh(){
   const s=await app.state();
-  $('s1').textContent=s.hasToken?'✅':'①';$('s2').textContent=s.hasYtdlp?'✅':'②';
-  $('status').textContent=s.running?`البوت شغال: ${s.tag}`:'البوت غير شغال';
-  $('dash').disabled=!s.running;
-  if(s.hasToken&&s.running){$('conn').classList.remove('hide');$('connText').textContent=`✅ متصل: ${s.tag}`;$('tokrow').classList.add('hide')}
+  const connected=s.hasToken&&s.running;
+  $('form').classList.toggle('hide',connected);$('done').classList.toggle('hide',!connected);
+  if(connected)$('tag').textContent=s.tag;
 }
 const urlErr=new URLSearchParams(location.search).get('err');
-if(urlErr){$('msg').className='bad';$('msg').textContent='❌ '+urlErr}
+if(urlErr){$('msg').className='msg bad';$('msg').textContent=urlErr}
 $('go').onclick=async()=>{
-  $('go').disabled=true;$('msg').className='mut';$('msg').textContent='جاري الاتصال...';
+  $('go').disabled=true;$('msg').className='msg mut';$('msg').textContent='جاري الاتصال...';
   const r=await app.saveToken($('token').value);
-  if(r.error){$('msg').className='bad';$('msg').textContent='❌ '+r.error}
-  else if(r.restart){$('msg').className='ok';$('msg').textContent='تم الحفظ — أعد تشغيل البرنامج لتطبيق التوكن الجديد'}
+  if(r.error){$('msg').className='msg bad';$('msg').textContent=r.error}
+  else if(r.restart){$('msg').className='msg ok';$('msg').textContent='تم الحفظ. أعد تشغيل البرنامج لتطبيق التوكن الجديد'}
   $('go').disabled=false;refresh();
 };
-$('dl').onclick=async()=>{
-  $('dl').disabled=true;$('dlmsg').className='mut';$('dlmsg').textContent='جاري التنزيل...';
-  const r=await app.downloadYtdlp();
-  $('dlmsg').className=r.error?'bad':'ok';$('dlmsg').textContent=r.error?'❌ '+r.error:'✅ تم';
-  $('dl').disabled=false;refresh();
-};
+$('token').addEventListener('keydown',e=>e.key==='Enter'&&$('go').click());
 $('dash').onclick=()=>app.openDashboard();
 $('folder').onclick=()=>app.openFolder();
+$('change').onclick=()=>{$('form').classList.remove('hide');$('done').classList.add('hide');$('token').focus()};
 refresh();
 </script></body></html>

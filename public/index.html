@@ -3,183 +3,330 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>لوحة بوت الموسيقى</title>
+<title>بوت الموسيقى</title>
 <style>
-:root{--bg:#0f1115;--card:#181b22;--line:#262a34;--fg:#e8eaf0;--mut:#8b91a0;--acc:#5865f2;--ok:#3ba55d;--bad:#ed4245}
-@media (prefers-color-scheme:light){:root{--bg:#f4f5f8;--card:#fff;--line:#e1e4ea;--fg:#1a1d24;--mut:#667}}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font-family:system-ui,"Segoe UI",Tahoma,sans-serif}
-header{display:flex;gap:10px;align-items:center;padding:12px 16px;border-bottom:1px solid var(--line);flex-wrap:wrap}
-header h1{font-size:18px;margin:0;margin-inline-end:auto}
-select,input,button{font:inherit;color:var(--fg);background:var(--card);border:1px solid var(--line);border-radius:8px;padding:8px 10px}
-button{cursor:pointer}button:hover{border-color:var(--acc)}button.p{background:var(--acc);border-color:var(--acc);color:#fff}
-button.d{color:var(--bad)}
-main{max-width:1000px;margin:0 auto;padding:16px}
-nav{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}nav button.on{background:var(--acc);border-color:var(--acc);color:#fff}
-.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:14px}
-.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.row>input{flex:1;min-width:180px}
-.now{display:flex;gap:12px;align-items:center}.now img{width:96px;height:64px;object-fit:cover;border-radius:8px;background:var(--line)}
-.now .t{font-weight:600}.mut{color:var(--mut);font-size:13px}
-.bar{height:6px;background:var(--line);border-radius:4px;margin:10px 0;overflow:hidden}.bar i{display:block;height:100%;background:var(--acc)}
-.list{display:flex;flex-direction:column;gap:6px}
-.item{display:flex;gap:8px;align-items:center;padding:8px;border:1px solid var(--line);border-radius:8px}
-.item .n{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.item img{width:56px;height:38px;object-fit:cover;border-radius:6px}
-audio{height:30px;max-width:220px}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:8px}
-.hide{display:none}#toast{position:fixed;bottom:16px;inset-inline:16px;margin:auto;max-width:420px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 14px;text-align:center;opacity:0;pointer-events:none;transition:.2s}
-#toast.show{opacity:1}
-#drop{border:2px dashed var(--line);border-radius:12px;padding:22px;text-align:center;color:var(--mut)}#drop.over{border-color:var(--acc);color:var(--fg)}
-#login{max-width:320px;margin:20vh auto;text-align:center}
+:root{
+  --bg:#07090d;--s1:#0d1016;--s2:#131722;--s3:#1a1f2e;--line:rgba(255,255,255,.07);--line2:rgba(255,255,255,.13);
+  --fg:#eef0f6;--mut:#8a92a6;--dim:#5b6376;--c1:#22d3ee;--c2:#f472b6;--bad:#fb5b6b;--ok:#34d399;
+  --grad:linear-gradient(135deg,var(--c1),var(--c2));--r:16px;
+  --font:"Segoe UI Variable Text","Segoe UI",Tahoma,system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--font);font-size:14px;overflow:hidden;
+  background-image:radial-gradient(900px 500px at 85% -10%,rgba(34,211,238,.10),transparent 60%),radial-gradient(800px 500px at 0% 110%,rgba(244,114,182,.09),transparent 60%)}
+button,input,select{font:inherit;color:inherit}
+.hide{display:none!important}
+.i{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.shell{display:grid;grid-template-rows:40px 1fr;height:100vh}
+.titlebar{-webkit-app-region:drag;display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--dim);letter-spacing:.3px}
+.app{display:grid;grid-template-columns:230px 1fr;grid-template-rows:1fr auto;min-height:0;gap:0}
+.side{grid-row:1/3;border-inline-end:1px solid var(--line);padding:8px 14px 16px;display:flex;flex-direction:column;gap:6px;background:linear-gradient(180deg,rgba(255,255,255,.02),transparent)}
+.brand{display:flex;align-items:center;gap:12px;padding:6px 8px 18px}
+.logo{width:40px;height:40px;border-radius:12px;background:#0f1115;display:grid;place-items:center;border:1px solid var(--line2)}
+.brand b{font-size:16px;display:block}.brand span{font-size:11px;color:var(--mut)}
+.nav{display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:12px;border:0;background:none;color:var(--mut);cursor:pointer;text-align:start;transition:.15s}
+.nav:hover{background:rgba(255,255,255,.05);color:var(--fg)}
+.nav.on{background:rgba(255,255,255,.08);color:var(--fg);box-shadow:inset 3px 0 0 var(--c1)}
+.nav.on .i{stroke:var(--c1)}
+.grow{flex:1}
+.chip{display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:12px;background:var(--s2);border:1px solid var(--line);font-size:12px;color:var(--mut)}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--ok);box-shadow:0 0 10px var(--ok)}
+.main{min-height:0;overflow:auto;padding:6px 28px 24px}
+.main::-webkit-scrollbar{width:10px}.main::-webkit-scrollbar-thumb{background:var(--s3);border-radius:8px;border:2px solid var(--bg)}
+.top{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:6px;position:sticky;top:0;z-index:5;padding:10px 0;background:linear-gradient(var(--bg) 70%,transparent)}
+.top h1{font-size:24px;font-weight:700;margin-inline-end:auto}
+.sel{position:relative}
+select{appearance:none;background:var(--s2);border:1px solid var(--line2);border-radius:12px;padding:10px 14px;min-width:140px;max-width:240px;cursor:pointer;outline:0}
+select:focus,input:focus{border-color:var(--c1)}
+option{background:var(--s2)}
+.btn{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line2);background:var(--s2);border-radius:12px;padding:10px 16px;cursor:pointer;transition:.15s;white-space:nowrap}
+.btn:hover{border-color:var(--c1);background:var(--s3)}
+.btn.pri{background:var(--grad);border:0;color:#06080c;font-weight:700}
+.btn.pri:hover{filter:brightness(1.1)}
+.btn.danger{color:var(--bad)}.btn.danger:hover{border-color:var(--bad)}
+.btn.sm{padding:7px 12px;font-size:13px;border-radius:10px}
+.btn.icon{padding:9px}
+.room{display:flex;align-items:center;gap:10px;color:var(--mut);font-size:13px;margin-bottom:14px}
+.card{background:linear-gradient(180deg,rgba(255,255,255,.045),rgba(255,255,255,.02));border:1px solid var(--line);border-radius:var(--r);padding:18px;margin-bottom:16px}
+.card h3{font-size:15px;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.mut{color:var(--mut)}.small{font-size:12px}
+.searchbar{display:flex;gap:10px;align-items:center}
+.field{flex:1;display:flex;align-items:center;gap:10px;background:var(--s1);border:1px solid var(--line2);border-radius:14px;padding:0 14px;min-width:200px}
+.field input{flex:1;background:none;border:0;outline:0;padding:14px 0;min-width:0}
+.field:focus-within{border-color:var(--c1);box-shadow:0 0 0 3px rgba(34,211,238,.12)}
+.list{display:flex;flex-direction:column;gap:8px}
+.item{display:flex;gap:12px;align-items:center;padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.03);border:1px solid var(--line);transition:.15s}
+.item:hover{background:rgba(255,255,255,.06)}
+.item img{width:64px;height:44px;border-radius:8px;object-fit:cover;background:var(--s3)}
+.item .n{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.item .num{width:22px;text-align:center;color:var(--dim)}
+.hero{position:relative;overflow:hidden;border-radius:20px;border:1px solid var(--line);padding:22px;margin-bottom:16px;display:flex;gap:22px;align-items:center;min-height:190px;background:var(--s2)}
+.hero::before{content:"";position:absolute;inset:-30px;background:var(--art,none) center/cover;filter:blur(40px) saturate(1.4);opacity:.35}
+.hero>*{position:relative}
+.art{width:150px;height:150px;border-radius:18px;background:var(--s3) center/cover;display:grid;place-items:center;box-shadow:0 20px 50px rgba(0,0,0,.5);flex:none;overflow:hidden}
+.art .eq{display:flex;gap:5px;align-items:flex-end;height:46px}
+.eq i{width:7px;border-radius:4px;background:var(--grad);animation:eq 1s ease-in-out infinite}
+.eq i:nth-child(2){animation-delay:.15s}.eq i:nth-child(3){animation-delay:.3s}.eq i:nth-child(4){animation-delay:.45s}.eq i:nth-child(5){animation-delay:.6s}
+.paused .eq i{animation-play-state:paused}
+@keyframes eq{0%,100%{height:10px}50%{height:44px}}
+.hero .t{font-size:26px;font-weight:700;line-height:1.3;margin:4px 0 8px}
+.tag{display:inline-flex;gap:6px;align-items:center;padding:4px 10px;border-radius:99px;background:rgba(255,255,255,.08);font-size:12px;color:var(--mut)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
+.tile{background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.02));border:1px solid var(--line);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:10px;transition:.15s}
+.tile:hover{border-color:var(--line2);transform:translateY(-2px)}
+.tile .em{font-size:30px;line-height:1}
+.tile .nm{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tile .acts{display:flex;gap:8px;flex-wrap:wrap}
+audio{width:100%;height:32px;filter:invert(.92) hue-rotate(160deg)}
+.drop{border:2px dashed var(--line2);border-radius:16px;padding:28px;text-align:center;color:var(--mut);transition:.15s}
+.drop.over{border-color:var(--c1);color:var(--fg);background:rgba(34,211,238,.06)}
+.empty{padding:30px;text-align:center;color:var(--dim)}
+.banner{display:flex;gap:10px;align-items:center;padding:12px 14px;border-radius:14px;border:1px solid rgba(251,91,107,.4);background:rgba(251,91,107,.1);color:#ffb3bb;margin-bottom:14px}
+.banner button{margin-inline-start:auto}
+.player{grid-column:2;display:grid;grid-template-columns:1fr minmax(320px,1.4fr) 1fr;gap:16px;align-items:center;padding:12px 28px 16px;border-top:1px solid var(--line);background:rgba(10,12,18,.85);backdrop-filter:blur(14px)}
+.pl-l{display:flex;gap:12px;align-items:center;min-width:0}
+.pl-l .th{width:52px;height:52px;border-radius:12px;background:var(--s3) center/cover;flex:none}
+.pl-l .tt{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pl-c{display:flex;flex-direction:column;gap:8px;align-items:center}
+.ctl{display:flex;gap:10px;align-items:center;direction:ltr}
+.cbtn{border:0;background:none;color:var(--mut);cursor:pointer;width:38px;height:38px;border-radius:50%;display:grid;place-items:center;transition:.15s}
+.cbtn:hover{color:var(--fg);background:rgba(255,255,255,.08)}
+.cbtn.on{color:var(--c1)}
+.cbtn.play{width:48px;height:48px;background:var(--grad);color:#06080c}
+.cbtn.play:hover{filter:brightness(1.12);background:var(--grad);color:#06080c}
+.prog{display:flex;align-items:center;gap:10px;width:100%;direction:ltr;font-size:11px;color:var(--mut)}
+.bar{flex:1;height:5px;border-radius:5px;background:rgba(255,255,255,.1);overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--grad);border-radius:5px;transition:width .4s linear}
+.pl-r{display:flex;gap:10px;align-items:center;justify-content:flex-end;direction:ltr}
+input[type=range]{-webkit-appearance:none;appearance:none;width:130px;height:5px;border-radius:5px;background:rgba(255,255,255,.12);outline:0;padding:0;border:0}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:#fff;cursor:pointer;box-shadow:0 0 0 4px rgba(34,211,238,.25)}
+.toast{position:fixed;bottom:110px;left:50%;transform:translate(-50%,20px);background:var(--s3);border:1px solid var(--line2);border-radius:14px;padding:12px 18px;opacity:0;pointer-events:none;transition:.25s;z-index:50;max-width:80vw}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.login{max-width:340px;margin:20vh auto;text-align:center}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.row input[type=text],.row input[type=password],.row input:not([type]){flex:1;background:var(--s1);border:1px solid var(--line2);border-radius:12px;padding:12px 14px;outline:0;min-width:160px}
+@media (max-width:900px){.app{grid-template-columns:72px 1fr}.nav span,.brand div,.chip span{display:none}.player{grid-template-columns:1fr}.pl-l,.pl-r{display:none}}
 </style>
 </head>
 <body>
-<div id="login" class="card hide"><h3>تسجيل الدخول</h3><div class="row"><input id="pw" type="password" placeholder="كلمة السر"><button class="p" onclick="login()">دخول</button></div></div>
+<svg width="0" height="0" style="position:absolute"><defs>
+<symbol id="i-play" viewBox="0 0 24 24"><path fill="currentColor" stroke="none" d="M8 4.8v14.4a1 1 0 0 0 1.5.9l11.2-7.2a1 1 0 0 0 0-1.8L9.5 3.9A1 1 0 0 0 8 4.8z"/></symbol>
+<symbol id="i-pause" viewBox="0 0 24 24"><rect fill="currentColor" stroke="none" x="6" y="4.5" width="4.2" height="15" rx="1.4"/><rect fill="currentColor" stroke="none" x="13.8" y="4.5" width="4.2" height="15" rx="1.4"/></symbol>
+<symbol id="i-skip" viewBox="0 0 24 24"><path fill="currentColor" stroke="none" d="M5 5.6v12.8a1 1 0 0 0 1.5.9l9.3-6.4a1 1 0 0 0 0-1.8L6.5 4.7A1 1 0 0 0 5 5.6z"/><rect fill="currentColor" stroke="none" x="17.5" y="5" width="2.6" height="14" rx="1.2"/></symbol>
+<symbol id="i-stop" viewBox="0 0 24 24"><rect fill="currentColor" stroke="none" x="6" y="6" width="12" height="12" rx="2.5"/></symbol>
+<symbol id="i-shuffle" viewBox="0 0 24 24"><path d="M16 3h5v5M4 20 21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/></symbol>
+<symbol id="i-repeat" viewBox="0 0 24 24"><path d="m17 2 4 4-4 4M3 11V9a3 3 0 0 1 3-3h15M7 22l-4-4 4-4M21 13v2a3 3 0 0 1-3 3H3"/></symbol>
+<symbol id="i-repeat1" viewBox="0 0 24 24"><path d="m17 2 4 4-4 4M3 11V9a3 3 0 0 1 3-3h15M7 22l-4-4 4-4M21 13v2a3 3 0 0 1-3 3H3M11 10l1.5-1v6"/></symbol>
+<symbol id="i-volume" viewBox="0 0 24 24"><path d="M11 5 6 9H2v6h4l5 4zM15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></symbol>
+<symbol id="i-music" viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></symbol>
+<symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></symbol>
+<symbol id="i-wave" viewBox="0 0 24 24"><path d="M4 10v4M8 6v12M12 3v18M16 7v10M20 10v4"/></symbol>
+<symbol id="i-settings" viewBox="0 0 24 24"><path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1"/><circle cx="15" cy="6" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="18" r="2"/></symbol>
+<symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol>
+<symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+<symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></symbol>
+<symbol id="i-download" viewBox="0 0 24 24"><path d="M12 4v11M7 11l5 5 5-5M5 20h14"/></symbol>
+<symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 16V5M7 9l5-5 5 5M5 20h14"/></symbol>
+<symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+<symbol id="i-login" viewBox="0 0 24 24"><path d="m10 17 5-5-5-5M15 12H3M15 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4"/></symbol>
+<symbol id="i-logout" viewBox="0 0 24 24"><path d="m14 7-5 5 5 5M9 12h12M9 4H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h4"/></symbol>
+<symbol id="i-save" viewBox="0 0 24 24"><path d="M5 4h11l3 3v13H5zM8 4v5h7V4M8 20v-6h8v6"/></symbol>
+<symbol id="i-link" viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></symbol>
+</defs></svg>
 
-<div id="app" class="hide">
-<header>
-  <h1>🎵 لوحة بوت الموسيقى</h1>
-  <select id="guild"></select>
-  <select id="vc" title="اختر الروم الصوتي"></select>
-  <button class="p" onclick="join()">ادخل الروم</button>
-  <button class="d" onclick="post('destroy')">اخرج</button>
-</header>
-<div id="room" class="mut" style="padding:8px 16px;border-bottom:1px solid var(--line)">البوت مو في أي روم</div>
-<div id="banner" class="hide" style="margin:10px 16px 0;padding:10px 14px;border:1px solid var(--bad);border-radius:10px;color:var(--bad)">
-  <span id="bannerText"></span> <button style="float:left;padding:2px 8px" onclick="this.parentNode.classList.add('hide')">✕</button></div>
-<main>
-<nav id="tabs">
-  <button data-t="music" class="on">الموسيقى</button>
-  <button data-t="lib">مكتبتي</button>
-  <button data-t="snd">أصوات ديسكورد</button>
-</nav>
+<div id="login" class="card login hide"><h3 style="justify-content:center">تسجيل الدخول</h3><div class="row"><input id="pw" type="password" placeholder="كلمة السر"><button class="btn pri" onclick="login()">دخول</button></div></div>
 
-<section id="t-music">
-  <div class="card">
-    <div class="row">
-      <input id="q" placeholder="الصق رابط (يوتيوب / تيك توك / انستغرام / أي موقع) أو اكتب اسم أغنية" onkeydown="if(event.key==='Enter')play()">
-      <button class="p" onclick="play()">تشغيل</button>
-      <button onclick="doSearch()">بحث</button>
+<div class="shell hide" id="shell">
+<div class="titlebar">بوت الموسيقى</div>
+<div class="app">
+  <aside class="side">
+    <div class="brand">
+      <div class="logo"><svg width="26" height="26" viewBox="0 0 120 120"><g><rect x="20" y="71" width="9" height="24" rx="4.5" fill="#22d3ee"/><rect x="34" y="49" width="9" height="46" rx="4.5" fill="#f472b6"/><rect x="48" y="29" width="9" height="66" rx="4.5" fill="#22d3ee"/><rect x="62" y="55" width="9" height="40" rx="4.5" fill="#f472b6"/><rect x="76" y="39" width="9" height="56" rx="4.5" fill="#22d3ee"/><rect x="90" y="65" width="9" height="30" rx="4.5" fill="#f472b6"/></g></svg></div>
+      <div><b>Music Bot</b><span>لوحة التحكم</span></div>
     </div>
-    <div id="results" class="list" style="margin-top:10px"></div>
-  </div>
-  <div class="card">
-    <div class="now"><img id="thumb" alt=""><div style="flex:1;min-width:0">
-      <div class="t" id="title">لا شيء يشتغل</div><div class="mut" id="sub"></div></div></div>
-    <div class="bar"><i id="prog" style="width:0"></i></div>
-    <div class="row">
-      <button onclick="post('pause')" id="pbtn">⏸️</button>
-      <button onclick="post('skip')">⏭️ تخطي</button>
-      <button onclick="post('stop')">⏹️ إيقاف</button>
-      <button onclick="post('shuffle')">🔀</button>
-      <select id="loop" onchange="post('loop',{mode:this.value})">
-        <option value="off">بدون تكرار</option><option value="track">كرر المقطع</option><option value="queue">كرر القائمة</option></select>
-      <span class="mut">🔊</span><input id="vol" type="range" min="0" max="150" style="flex:0 0 140px;min-width:0" oninput="post('volume',{volume:this.value/100})">
+    <div id="tabs" style="display:flex;flex-direction:column;gap:6px">
+      <button class="nav on" data-t="music"><svg class="i"><use href="#i-music"/></svg><span>الموسيقى</span></button>
+      <button class="nav" data-t="lib"><svg class="i"><use href="#i-folder"/></svg><span>مكتبتي</span></button>
+      <button class="nav" data-t="snd"><svg class="i"><use href="#i-wave"/></svg><span>أصوات ديسكورد</span></button>
+      <button class="nav" data-t="set"><svg class="i"><use href="#i-settings"/></svg><span>الإعدادات</span></button>
     </div>
-    <div id="err" class="mut" style="color:var(--bad)"></div>
-  </div>
-  <div class="card"><b>القائمة</b><div id="queue" class="list" style="margin-top:8px"></div></div>
-</section>
+    <div class="grow"></div>
+    <div class="chip"><i class="dot"></i><span id="botTag">البوت شغال</span></div>
+  </aside>
 
-<section id="t-lib" class="hide">
-  <div class="card">
-    <div id="drop">اسحب ملفات صوت/فيديو هنا أو <label style="color:var(--acc);cursor:pointer">اختر ملفات<input id="file" type="file" multiple accept="audio/*,video/*" class="hide"></label></div>
-  </div>
-  <div class="card">
-    <div class="mut" style="margin-bottom:6px">أضف للمكتبة من رابط (يوتيوب / تيك توك / انستغرام ...) — يتحول mp3</div>
-    <div class="row"><input id="impurl" placeholder="الرابط"><input id="impname" placeholder="الاسم (اختياري)" style="max-width:200px"><button class="p" onclick="importUrl()">إضافة</button></div>
-  </div>
-  <div class="card"><div id="lib" class="list"></div></div>
-</section>
+  <main class="main" id="main">
+    <div class="top">
+      <h1 id="viewTitle">الموسيقى</h1>
+      <div class="sel"><select id="guild" title="السيرفر"></select></div>
+      <div class="sel"><select id="vc" title="الروم الصوتي"></select></div>
+      <button class="btn pri sm" onclick="join()"><svg class="i"><use href="#i-login"/></svg>ادخل الروم</button>
+      <button class="btn danger sm" onclick="post('destroy')"><svg class="i"><use href="#i-logout"/></svg>اخرج</button>
+    </div>
+    <div id="room" class="room">البوت مو في أي روم</div>
+    <div id="banner" class="banner hide"><span id="bannerText"></span><button class="btn sm icon" onclick="$('banner').classList.add('hide')"><svg class="i"><use href="#i-x"/></svg></button></div>
 
-<section id="t-snd" class="hide">
-  <div class="card">
-    <div class="row"><button class="p" onclick="loadSounds('guild')">أصوات هذا السيرفر</button>
-    <button onclick="loadSounds('default')">أصوات ديسكورد الافتراضية</button>
-    <button class="p" onclick="playSounds(sounds)">▶ شغّل الكل بالبوت</button>
-    <button onclick="saveAll()">💾 احفظ الكل (للمكتبة + مجلد downloads)</button></div>
-    <div class="mut" style="margin-top:6px">المحفوظ ينزل في <code>downloads/discord-sounds</code> وينضاف لمكتبتك لتشغيله بالبوت.</div>
-  </div>
-  <div id="sounds" class="grid"></div>
-</section>
-</main>
+    <section id="t-music">
+      <div class="card">
+        <div class="searchbar">
+          <div class="field"><svg class="i" style="color:var(--mut)"><use href="#i-search"/></svg>
+            <input id="q" placeholder="الصق رابط (يوتيوب / تيك توك / انستغرام / أي موقع) أو اكتب اسم أغنية" onkeydown="if(event.key==='Enter')play()"></div>
+          <button class="btn pri" onclick="play()"><svg class="i"><use href="#i-play"/></svg>تشغيل</button>
+          <button class="btn" onclick="doSearch()"><svg class="i"><use href="#i-search"/></svg>بحث</button>
+        </div>
+        <div id="results" class="list" style="margin-top:12px"></div>
+      </div>
+      <div class="hero" id="hero">
+        <div class="art" id="art"><div class="eq"><i></i><i></i><i></i><i></i><i></i></div></div>
+        <div style="min-width:0">
+          <span class="tag" id="heroTag">جاهز</span>
+          <div class="t" id="title">ما فيه شيء يشتغل</div>
+          <div class="mut" id="sub">اختر روم وشغّل أغنية من فوق</div>
+        </div>
+      </div>
+      <div class="card"><h3><svg class="i"><use href="#i-music"/></svg>القائمة <span class="mut small" id="qcount"></span></h3><div id="queue" class="list"></div></div>
+    </section>
+
+    <section id="t-lib" class="hide">
+      <div class="card"><div class="drop" id="drop"><svg class="i" style="width:30px;height:30px"><use href="#i-upload"/></svg><div style="margin:8px 0">اسحب ملفات صوت أو فيديو هنا</div>
+        <label class="btn sm" style="cursor:pointer">اختر ملفات<input id="file" type="file" multiple accept="audio/*,video/*" class="hide"></label></div></div>
+      <div class="card"><h3><svg class="i"><use href="#i-link"/></svg>أضف للمكتبة من رابط</h3>
+        <div class="mut small" style="margin-bottom:10px">يوتيوب، تيك توك، انستغرام وغيرها. يتحول mp3 وينحفظ.</div>
+        <div class="row"><input id="impurl" placeholder="الرابط"><input id="impname" placeholder="الاسم (اختياري)" style="max-width:220px;flex:none"><button class="btn pri" onclick="importUrl()"><svg class="i"><use href="#i-plus"/></svg>إضافة</button></div></div>
+      <div id="lib" class="grid"></div>
+    </section>
+
+    <section id="t-snd" class="hide">
+      <div class="card">
+        <div class="row">
+          <button class="btn pri" onclick="loadSounds('guild')"><svg class="i"><use href="#i-wave"/></svg>أصوات هذا السيرفر</button>
+          <button class="btn" onclick="loadSounds('default')">الأصوات الافتراضية</button>
+          <span class="grow" style="flex:1"></span>
+          <button class="btn" onclick="playSounds(sounds)"><svg class="i"><use href="#i-play"/></svg>شغّل الكل بالبوت</button>
+          <button class="btn" onclick="saveAll()"><svg class="i"><use href="#i-save"/></svg>احفظ الكل</button>
+        </div>
+        <div class="mut small" style="margin-top:10px">المحفوظ ينزل في مجلد البيانات وينضاف لمكتبتك لتشغيله بالبوت.</div>
+      </div>
+      <div id="sounds" class="grid"></div>
+    </section>
+
+    <section id="t-set" class="hide">
+      <div class="card"><h3>حالة البوت</h3>
+        <div class="row"><span class="tag" id="setTag">...</span></div></div>
+      <div class="card" id="tokCard"><h3>توكن البوت</h3>
+        <div class="mut small" style="margin-bottom:10px">تغيير التوكن يحتاج إعادة تشغيل البرنامج.</div>
+        <div class="row"><input id="newtok" type="password" placeholder="الصق التوكن الجديد" autocomplete="off"><button class="btn pri" onclick="saveTok()">حفظ</button></div></div>
+      <div class="card"><h3>البيانات</h3>
+        <div class="mut small" style="margin-bottom:10px">المكتبة والأصوات المحفوظة والإعدادات.</div>
+        <button class="btn" onclick="window.app&&app.openFolder()"><svg class="i"><use href="#i-folder"/></svg>فتح مجلد البيانات</button></div>
+    </section>
+  </main>
+
+  <footer class="player" id="player">
+    <div class="pl-l"><div class="th" id="pth"></div><div style="min-width:0"><div class="tt" id="ptitle">لا شيء يشتغل</div><div class="mut small" id="psub"></div></div></div>
+    <div class="pl-c">
+      <div class="ctl">
+        <button class="cbtn" id="bShuffle" title="خلط" onclick="post('shuffle')"><svg class="i"><use href="#i-shuffle"/></svg></button>
+        <button class="cbtn" title="إيقاف" onclick="post('stop')"><svg class="i"><use href="#i-stop"/></svg></button>
+        <button class="cbtn play" id="pbtn"><svg class="i" style="width:22px;height:22px"><use href="#i-play" id="pico"/></svg></button>
+        <button class="cbtn" title="تخطي" onclick="post('skip')"><svg class="i"><use href="#i-skip"/></svg></button>
+        <button class="cbtn" id="bLoop" title="تكرار" onclick="cycleLoop()"><svg class="i"><use href="#i-repeat" id="lico"/></svg></button>
+      </div>
+      <div class="prog"><span id="tcur">0:00</span><div class="bar"><i id="prog"></i></div><span id="tdur">0:00</span></div>
+    </div>
+    <div class="pl-r"><svg class="i" style="color:var(--mut)"><use href="#i-volume"/></svg><input id="vol" type="range" min="0" max="150" oninput="post('volume',{volume:this.value/100})"></div>
+  </footer>
 </div>
-<div id="toast"></div>
+</div>
+<div id="toast" class="toast"></div>
 
 <script>
 const $=id=>document.getElementById(id);
 let guilds=[],gid=null,state=null,sounds=[],es=null;
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const fmt=s=>s?`${Math.floor(s/60)}:${String(Math.floor(s%60)).padStart(2,'0')}`:'';
+const fmt=s=>{s=Math.max(0,Math.floor(s||0));return `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`};
+const ic=(n,s='')=>`<svg class="i" ${s?`style="${s}"`:''}><use href="#i-${n}"/></svg>`;
 function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),3500)}
-function fail(e){const m=(e&&e.message)||String(e);$('bannerText').textContent='❌ '+m;$('banner').classList.remove('hide');toast('❌ '+m)}
+function fail(e){const m=(e&&e.message)||String(e);$('bannerText').textContent=m;$('banner').classList.remove('hide');toast('❌ '+m)}
 window.addEventListener('unhandledrejection',e=>fail(e.reason));
 async function api(path,opt){
   const r=await fetch(path,opt);const j=await r.json().catch(()=>({}));
   if(r.status===401){location.reload();return}
   if(!r.ok)throw new Error(j.error||r.status);return j}
 const jpost=(p,b)=>api(p,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b||{})});
-const post=(a,b)=>jpost(`/api/guilds/${gid}/${a}`,b).catch(e=>fail(e));
+const post=(a,b)=>jpost(`/api/guilds/${gid}/${a}`,b).catch(fail);
 
 async function boot(){
   const a=await (await fetch('/api/auth')).json();
   if(!a.ok){$('login').classList.remove('hide');return}
-  $('login').classList.add('hide');$('app').classList.remove('hide');
+  $('login').classList.add('hide');$("shell").classList.remove("hide");
   guilds=await api('/api/guilds');
   $('guild').innerHTML=guilds.map(g=>`<option value="${g.id}">${esc(g.name)}</option>`).join('');
-  if(!guilds.length)toast('البوت مو في أي سيرفر. ادعه أول.');
-  pickGuild();loadLib();
+  if(!guilds.length)toast('البوت مو في أي سيرفر. أضفه من رابط الدعوة أول.');
+  pickGuild();loadLib();loadSettings();
   es=new EventSource('/api/events');
   es.onmessage=e=>{const s=JSON.parse(e.data);if(s.guildId===gid)render(s)};
   setInterval(()=>{if(state&&state.current&&!state.paused){state.elapsed++;renderProg()}},1000);
 }
-async function login(){
-  try{await jpost('/login',{password:$('pw').value});location.reload()}catch(e){fail(e)}}
+async function login(){try{await jpost('/login',{password:$('pw').value});location.reload()}catch(e){fail(e)}}
 $('pw').addEventListener('keydown',e=>e.key==='Enter'&&login());
 function pickGuild(){
   gid=$('guild').value;const g=guilds.find(x=>x.id===gid);if(!g)return;
-  $('vc').innerHTML=g.voice.map(c=>`<option value="${c.id}">🔈 ${esc(c.name)} (${c.members})</option>`).join('');
+  $('vc').innerHTML=g.voice.map(c=>`<option value="${c.id}">${esc(c.name)} (${c.members})</option>`).join('');
   api(`/api/guilds/${gid}/state`).then(s=>{render(s);if(s.channelId)$('vc').value=s.channelId});
 }
 $('guild').onchange=pickGuild;
-const join=()=>post('join',{channelId:$('vc').value}).then(()=>toast('تم'));
+const join=()=>post('join',{channelId:$('vc').value}).then(()=>toast('تم الدخول'));
+const LOOPS=['off','track','queue'];
+const cycleLoop=()=>post('loop',{mode:LOOPS[(LOOPS.indexOf(state?.loop||'off')+1)%3]});
 
 function render(s){
   state=s;const c=s.current;
   const g=guilds.find(x=>x.id===s.guildId),ch=g&&g.voice.find(v=>v.id===s.channelId);
-  $('room').textContent=s.channelId?`🔈 البوت الحين في الروم: ${ch?ch.name:s.channelId}`:'البوت مو في أي روم — اختر روم من القائمة فوق واضغط "ادخل الروم" (أو شغّل أغنية وراح يدخله).';
+  $('room').innerHTML=s.channelId?`<i class="dot"></i>البوت في الروم: <b style="color:var(--fg)">${esc(ch?ch.name:s.channelId)}</b>`:'البوت مو في أي روم. اختر روم من فوق واضغط "ادخل الروم" (أو شغّل أغنية وراح يدخله).';
   if(s.channelId)$('vc').value=s.channelId;
-  $('title').textContent=c?c.title:'لا شيء يشتغل';
-  $('sub').textContent=c?`${c.kind==='file'?'📁 مكتبة':'🌐 رابط'} ${c.by?'· '+c.by:''}`:'';
-  $('thumb').style.visibility=c?.thumbnail?'visible':'hidden';if(c?.thumbnail)$('thumb').src=c.thumbnail;
-  $('pbtn').textContent=s.paused?'▶️':'⏸️';
+  const playing=!!c&&!s.paused;
+  $('hero').classList.toggle('paused',!playing);
+  $('title').textContent=c?c.title:'ما فيه شيء يشتغل';
+  $('ptitle').textContent=c?c.title:'لا شيء يشتغل';
+  $('heroTag').textContent=!c?'جاهز':s.paused?'متوقف مؤقتا':'يشتغل الآن';
+  const art=c?.thumbnail?`url("${c.thumbnail}")`:'';
+  $('hero').style.setProperty('--art',art||'none');
+  $('art').style.backgroundImage=art;$('pth').style.backgroundImage=art;
+  $('art').firstElementChild.style.display=c?.thumbnail?'none':'flex';
+  $('pico').setAttribute('href',s.paused||!c?'#i-play':'#i-pause');
   $('pbtn').onclick=()=>post(s.paused?'resume':'pause');
-  $('loop').value=s.loop;if(document.activeElement!==$('vol'))$('vol').value=Math.round(s.volume*100);
-  $('err').textContent=s.error?'⚠️ '+s.error:'';
-  $('queue').innerHTML=s.tracks.length?s.tracks.map((t,i)=>`<div class="item"><span class="mut">${i+1}</span><span class="n">${t.kind==='file'?'📁 ':''}${esc(t.title)}</span><span class="mut">${fmt(t.duration)}</span><button class="d" onclick="post('remove',{index:${i}})">✕</button></div>`).join(''):'<div class="mut">فاضية</div>';
+  $('lico').setAttribute('href',s.loop==='track'?'#i-repeat1':'#i-repeat');
+  $('bLoop').classList.toggle('on',s.loop!=='off');
+  if(document.activeElement!==$('vol'))$('vol').value=Math.round(s.volume*100);
+  $('qcount').textContent=s.tracks.length?`(${s.tracks.length})`:'';
+  $('queue').innerHTML=s.tracks.length?s.tracks.map((t,i)=>`<div class="item"><span class="num">${i+1}</span><span class="n">${t.kind==='file'?'📁 ':''}${esc(t.title)}</span><span class="mut small">${fmt(t.duration)}</span><button class="btn sm icon danger" onclick="post('remove',{index:${i}})">${ic('x')}</button></div>`).join(''):'<div class="empty">القائمة فاضية</div>';
+  if(s.error)fail(new Error(s.error));
   renderProg();
 }
 function renderProg(){
-  const c=state?.current;if(!c||!c.duration){$('prog').style.width=c?'100%':'0';$('prog').style.opacity=c?.3:1;return}
-  $('prog').style.opacity=1;$('prog').style.width=Math.min(100,state.elapsed/c.duration*100)+'%';
-  $('sub').textContent=`${fmt(state.elapsed)} / ${fmt(c.duration)} · ${c.by||''}`;
+  const c=state?.current;
+  $('tcur').textContent=c?fmt(state.elapsed):'0:00';$('tdur').textContent=c&&c.duration?fmt(c.duration):'--:--';
+  $('prog').style.width=c&&c.duration?Math.min(100,state.elapsed/c.duration*100)+'%':'0';
+  const meta=c?`${c.kind==='file'?'من المكتبة':'من رابط'}${c.by?' · '+c.by:''}`:'';
+  $('sub').textContent=c?meta:'اختر روم وشغّل أغنية من فوق';$('psub').textContent=meta;
 }
 
 async function play(){
   const q=$('q').value.trim();if(!q)return;
   try{toast('جاري التحميل...');const r=await jpost(`/api/guilds/${gid}/play`,{query:q,channelId:$('vc').value});
-    toast(`➕ ${r.added>1?r.added+' مقطع':r.first}`);$('q').value='';$('results').innerHTML=''}catch(e){fail(e)}}
+    toast(`تمت الإضافة: ${r.added>1?r.added+' مقطع':r.first}`);$('q').value='';$('results').innerHTML=''}catch(e){fail(e)}}
 async function doSearch(){
   const q=$('q').value.trim();if(!q)return;
-  try{const r=await api('/api/search?q='+encodeURIComponent(q));
-    $('results').innerHTML=r.map((t,i)=>`<div class="item">${t.thumbnail?`<img src="${esc(t.thumbnail)}">`:''}<span class="n">${esc(t.title)}</span><span class="mut">${fmt(t.duration)}</span><button class="p" data-u="${esc(t.url)}" onclick="$('q').value=this.dataset.u;play()">＋</button></div>`).join('')}
+  try{toast('جاري البحث...');const r=await api('/api/search?q='+encodeURIComponent(q));
+    $('results').innerHTML=r.map(t=>`<div class="item">${t.thumbnail?`<img src="${esc(t.thumbnail)}">`:''}<span class="n">${esc(t.title)}</span><span class="mut small">${fmt(t.duration)}</span><button class="btn sm pri" data-u="${esc(t.url)}" onclick="$('q').value=this.dataset.u;play()">${ic('plus')}أضف</button></div>`).join('')||'<div class="empty">ما فيه نتائج</div>'}
   catch(e){fail(e)}}
 
-// ---- المكتبة
 async function loadLib(){
   const l=await api('/api/library');
-  $('lib').innerHTML=l.length?l.map(f=>`<div class="item"><span class="n">📁 ${esc(f.title)}</span><audio controls preload="none" src="/library-files/${encodeURIComponent(f.file)}"></audio>
-    <button class="p" onclick="playFile(this.dataset.f)" data-f="${esc(f.file)}">▶ شغّل بالبوت</button>
-    <button class="d" onclick="delFile(this.dataset.f)" data-f="${esc(f.file)}">🗑</button></div>`).join(''):'<div class="mut">المكتبة فاضية — ارفع ملفات أو أضف من رابط</div>'}
+  $('lib').innerHTML=l.length?l.map(f=>`<div class="tile"><div class="nm" title="${esc(f.title)}">${esc(f.title)}</div><audio controls preload="none" src="/library-files/${encodeURIComponent(f.file)}"></audio>
+    <div class="acts"><button class="btn sm pri" onclick="playFile(this.dataset.f)" data-f="${esc(f.file)}">${ic('play')}شغّل بالبوت</button>
+    <button class="btn sm danger icon" onclick="delFile(this.dataset.f)" data-f="${esc(f.file)}">${ic('trash')}</button></div></div>`).join(''):'<div class="empty" style="grid-column:1/-1">المكتبة فاضية. ارفع ملفات أو أضف من رابط.</div>'}
 async function playFile(f){try{await jpost(`/api/guilds/${gid}/play-file`,{file:f,channelId:$('vc').value});toast('تمت الإضافة')}catch(e){fail(e)}}
 async function delFile(f){if(!confirm('حذف '+f+'؟'))return;try{await jpost('/api/library/delete',{file:f});loadLib()}catch(e){fail(e)}}
 async function upload(files){
@@ -196,28 +343,35 @@ async function importUrl(){
   try{toast('جاري التحميل والتحويل...');await jpost('/api/library/import',{url,name:$('impname').value});
     $('impurl').value=$('impname').value='';toast('تمت الإضافة');loadLib()}catch(e){fail(e)}}
 
-// ---- أصوات ديسكورد
 async function loadSounds(kind){
   try{sounds=await api(kind==='default'?'/api/default-sounds':`/api/guilds/${gid}/sounds`);
-    $('sounds').innerHTML=sounds.length?sounds.map((s,i)=>`<div class="card" style="margin:0"><div><b>${s.emoji||'🔊'} ${esc(s.name)}</b></div>
-      <audio controls preload="none" src="/api/sound/${s.id}" style="width:100%;margin:8px 0"></audio>
-      <div class="row"><a href="/api/sound/${s.id}?dl=1&name=${encodeURIComponent(s.name)}"><button>⬇ تحميل</button></a>
-      <button class="p" onclick="playSounds([sounds[${i}]])">▶ شغّل بالبوت</button>
-      <button onclick="saveOne(${i})">💾 للمكتبة</button></div></div>`).join(''):'<div class="mut">ما فيه أصوات</div>'}
+    $('sounds').innerHTML=sounds.length?sounds.map((s,i)=>`<div class="tile"><div class="em">${s.emoji||'🔊'}</div><div class="nm" title="${esc(s.name)}">${esc(s.name)}</div>
+      <audio controls preload="none" src="/api/sound/${s.id}"></audio>
+      <div class="acts"><button class="btn sm pri" onclick="playSounds([sounds[${i}]])">${ic('play')}شغّل بالبوت</button>
+      <a href="/api/sound/${s.id}?dl=1&name=${encodeURIComponent(s.name)}" style="text-decoration:none"><button class="btn sm icon" title="تحميل">${ic('download')}</button></a>
+      <button class="btn sm icon" title="للمكتبة" onclick="saveOne(${i})">${ic('save')}</button></div></div>`).join(''):'<div class="empty" style="grid-column:1/-1">ما فيه أصوات في هذا السيرفر</div>'}
   catch(e){fail(e)}}
 async function playSounds(list){
   if(!list.length)return toast('حمّل قائمة أصوات أول');
   try{toast('جاري السحب والتشغيل...');
     const r=await jpost(`/api/guilds/${gid}/play-sounds`,{sounds:list,channelId:$('vc').value});
-    toast(`▶ أضفت ${r.added} صوت للتشغيل`);loadLib()}catch(e){fail(e)}}
+    toast(`أضفت ${r.added} صوت للتشغيل`);loadLib()}catch(e){fail(e)}}
 async function saveOne(i){try{await jpost('/api/sounds/save',{sounds:[sounds[i]]});toast('تم الحفظ');loadLib()}catch(e){fail(e)}}
 async function saveAll(){if(!sounds.length)return toast('حمّل قائمة أصوات أول');
   try{toast('جاري الحفظ...');const r=await jpost('/api/sounds/save',{sounds});toast(`تم حفظ ${r.saved.length} صوت`);loadLib()}catch(e){fail(e)}}
 
-// ---- التبويبات
-$('tabs').onclick=e=>{const t=e.target.dataset.t;if(!t)return;
-  document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b===e.target));
-  ['music','lib','snd'].forEach(x=>$('t-'+x).classList.toggle('hide',x!==t))};
+async function loadSettings(){
+  if(!window.app){$('tokCard').classList.add('hide');return}
+  const s=await app.state();$('setTag').textContent=s.running?`متصل: ${s.tag}`:'غير متصل';$('botTag').textContent=s.running?s.tag:'غير متصل'}
+async function saveTok(){
+  const r=await app.saveToken($('newtok').value);
+  if(r.error)return fail(new Error(r.error));
+  $('newtok').value='';toast('تم الحفظ. أعد تشغيل البرنامج لتطبيق التوكن الجديد')}
+
+const TITLES={music:'الموسيقى',lib:'مكتبتي',snd:'أصوات ديسكورد',set:'الإعدادات'};
+$('tabs').onclick=e=>{const b=e.target.closest('.nav');if(!b)return;const t=b.dataset.t;
+  document.querySelectorAll('#tabs .nav').forEach(x=>x.classList.toggle('on',x===b));
+  Object.keys(TITLES).forEach(x=>$('t-'+x).classList.toggle('hide',x!==t));$('viewTitle').textContent=TITLES[t];$('main').scrollTop=0};
 boot();
 </script>
 </body>
