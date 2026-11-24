@@ -1,0 +1,59 @@
+{
+  "name": "discord-music-bot",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "electron/main.mjs",
+  "scripts": {
+    "start": "electron .",
+    "bot": "node src/index.js",
+    "setup": "node scripts/setup-ytdlp.mjs",
+    "dist": "electron-builder --win nsis"
+  },
+  "dependencies": {
+    "@discordjs/voice": "^0.19.2",
+    "discord.js": "^14.28.1",
+    "dotenv": "^18.0.10",
+    "express": "^5.3.0",
+    "ffmpeg-static": "^5.3.0",
+    "libsodium-wrappers": "^0.8.4",
+    "opusscript": "^0.0.8"
+  },
+  "devDependencies": {
+    "electron": "^45.4.1",
+    "electron-builder": "^26.18.0"
+  },
+  "description": "Discord music bot with a desktop control panel / بوت موسيقى ديسكورد مع لوحة تحكم",
+  "author": "Khalid",
+  "build": {
+    "appId": "com.khalid.musicbot",
+    "productName": "Music Bot",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "electron/**",
+      "src/**",
+      "public/**",
+      "package.json"
+    ],
+    "win": {
+      "target": "nsis",
+      "signAndEditExecutable": false
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "perMachine": false,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "بوت الموسيقى",
+      "multiLanguageInstaller": true,
+      "displayLanguageSelector": true
+    },
+    "asarUnpack": [
+      "node_modules/ffmpeg-static/**"
+    ]
+  },
+  "license": "MIT"
+}

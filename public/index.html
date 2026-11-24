@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>لوحة بوت الموسيقى</title>
+<style>
+:root{--bg:#0f1115;--card:#181b22;--line:#262a34;--fg:#e8eaf0;--mut:#8b91a0;--acc:#5865f2;--ok:#3ba55d;--bad:#ed4245}
+@media (prefers-color-scheme:light){:root{--bg:#f4f5f8;--card:#fff;--line:#e1e4ea;--fg:#1a1d24;--mut:#667}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font-family:system-ui,"Segoe UI",Tahoma,sans-serif}
+header{display:flex;gap:10px;align-items:center;padding:12px 16px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+header h1{font-size:18px;margin:0;margin-inline-end:auto}
+select,input,button{font:inherit;color:var(--fg);background:var(--card);border:1px solid var(--line);border-radius:8px;padding:8px 10px}
+button{cursor:pointer}button:hover{border-color:var(--acc)}button.p{background:var(--acc);border-color:var(--acc);color:#fff}
+button.d{color:var(--bad)}
+main{max-width:1000px;margin:0 auto;padding:16px}
+nav{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}nav button.on{background:var(--acc);border-color:var(--acc);color:#fff}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:14px}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.row>input{flex:1;min-width:180px}
+.now{display:flex;gap:12px;align-items:center}.now img{width:96px;height:64px;object-fit:cover;border-radius:8px;background:var(--line)}
+.now .t{font-weight:600}.mut{color:var(--mut);font-size:13px}
+.bar{height:6px;background:var(--line);border-radius:4px;margin:10px 0;overflow:hidden}.bar i{display:block;height:100%;background:var(--acc)}
+.list{display:flex;flex-direction:column;gap:6px}
+.item{display:flex;gap:8px;align-items:center;padding:8px;border:1px solid var(--line);border-radius:8px}
+.item .n{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.item img{width:56px;height:38px;object-fit:cover;border-radius:6px}
+audio{height:30px;max-width:220px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:8px}
+.hide{display:none}#toast{position:fixed;bottom:16px;inset-inline:16px;margin:auto;max-width:420px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 14px;text-align:center;opacity:0;pointer-events:none;transition:.2s}
+#toast.show{opacity:1}
+#drop{border:2px dashed var(--line);border-radius:12px;padding:22px;text-align:center;color:var(--mut)}#drop.over{border-color:var(--acc);color:var(--fg)}
+#login{max-width:320px;margin:20vh auto;text-align:center}
+</style>
+</head>
+<body>
+<div id="login" class="card hide"><h3>تسجيل الدخول</h3><div class="row"><input id="pw" type="password" placeholder="كلمة السر"><button class="p" onclick="login()">دخول</button></div></div>
+
+<div id="app" class="hide">
+<header>
+  <h1>🎵 لوحة بوت الموسيقى</h1>
+  <select id="guild"></select>
+  <select id="vc" title="اختر الروم الصوتي"></select>
+  <button class="p" onclick="join()">ادخل الروم</button>
+  <button class="d" onclick="post('destroy')">اخرج</button>
+</header>
+<div id="room" class="mut" style="padding:8px 16px;border-bottom:1px solid var(--line)">البوت مو في أي روم</div>
+<div id="banner" class="hide" style="margin:10px 16px 0;padding:10px 14px;border:1px solid var(--bad);border-radius:10px;color:var(--bad)">
+  <span id="bannerText"></span> <button style="float:left;padding:2px 8px" onclick="this.parentNode.classList.add('hide')">✕</button></div>
+<main>
+<nav id="tabs">
+  <button data-t="music" class="on">الموسيقى</button>
+  <button data-t="lib">مكتبتي</button>
+  <button data-t="snd">أصوات ديسكورد</button>
+</nav>
+
+<section id="t-music">
+  <div class="card">
+    <div class="row">
+      <input id="q" placeholder="الصق رابط (يوتيوب / تيك توك / انستغرام / أي موقع) أو اكتب اسم أغنية" onkeydown="if(event.key==='Enter')play()">
+      <button class="p" onclick="play()">تشغيل</button>
+      <button onclick="doSearch()">بحث</button>
+    </div>
+    <div id="results" class="list" style="margin-top:10px"></div>
+  </div>
+  <div class="card">
+    <div class="now"><img id="thumb" alt=""><div style="flex:1;min-width:0">
+      <div class="t" id="title">لا شيء يشتغل</div><div class="mut" id="sub"></div></div></div>
+    <div class="bar"><i id="prog" style="width:0"></i></div>
+    <div class="row">
+      <button onclick="post('pause')" id="pbtn">⏸️</button>
+      <button onclick="post('skip')">⏭️ تخطي</button>
+      <button onclick="post('stop')">⏹️ إيقاف</button>
+      <button onclick="post('shuffle')">🔀</button>
+      <select id="loop" onchange="post('loop',{mode:this.value})">
+        <option value="off">بدون تكرار</option><option value="track">كرر المقطع</option><option value="queue">كرر القائمة</option></select>
+      <span class="mut">🔊</span><input id="vol" type="range" min="0" max="150" style="flex:0 0 140px;min-width:0" oninput="post('volume',{volume:this.value/100})">
+    </div>
+    <div id="err" class="mut" style="color:var(--bad)"></div>
+  </div>
+  <div class="card"><b>القائمة</b><div id="queue" class="list" style="margin-top:8px"></div></div>
+</section>
+
+<section id="t-lib" class="hide">
+  <div class="card">
+    <div id="drop">اسحب ملفات صوت/فيديو هنا أو <label style="color:var(--acc);cursor:pointer">اختر ملفات<input id="file" type="file" multiple accept="audio/*,video/*" class="hide"></label></div>
+  </div>
+  <div class="card">
+    <div class="mut" style="margin-bottom:6px">أضف للمكتبة من رابط (يوتيوب / تيك توك / انستغرام ...) — يتحول mp3</div>
+    <div class="row"><input id="impurl" placeholder="الرابط"><input id="impname" placeholder="الاسم (اختياري)" style="max-width:200px"><button class="p" onclick="importUrl()">إضافة</button></div>
+  </div>
+  <div class="card"><div id="lib" class="list"></div></div>
+</section>
+
+<section id="t-snd" class="hide">
+  <div class="card">
+    <div class="row"><button class="p" onclick="loadSounds('guild')">أصوات هذا السيرفر</button>
+    <button onclick="loadSounds('default')">أصوات ديسكورد الافتراضية</button>
+    <button class="p" onclick="playSounds(sounds)">▶ شغّل الكل بالبوت</button>
+    <button onclick="saveAll()">💾 احفظ الكل (للمكتبة + مجلد downloads)</button></div>
+    <div class="mut" style="margin-top:6px">المحفوظ ينزل في <code>downloads/discord-sounds</code> وينضاف لمكتبتك لتشغيله بالبوت.</div>
+  </div>
+  <div id="sounds" class="grid"></div>
+</section>
+</main>
+</div>
+<div id="toast"></div>
+
+<script>
+const $=id=>document.getElementById(id);
+let guilds=[],gid=null,state=null,sounds=[],es=null;
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fmt=s=>s?`${Math.floor(s/60)}:${String(Math.floor(s%60)).padStart(2,'0')}`:'';
+function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),3500)}
+function fail(e){const m=(e&&e.message)||String(e);$('bannerText').textContent='❌ '+m;$('banner').classList.remove('hide');toast('❌ '+m)}
+window.addEventListener('unhandledrejection',e=>fail(e.reason));
+async function api(path,opt){
+  const r=await fetch(path,opt);const j=await r.json().catch(()=>({}));
+  if(r.status===401){location.reload();return}
+  if(!r.ok)throw new Error(j.error||r.status);return j}
+const jpost=(p,b)=>api(p,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b||{})});
+const post=(a,b)=>jpost(`/api/guilds/${gid}/${a}`,b).catch(e=>fail(e));
+
+async function boot(){
+  const a=await (await fetch('/api/auth')).json();
+  if(!a.ok){$('login').classList.remove('hide');return}
+  $('login').classList.add('hide');$('app').classList.remove('hide');
+  guilds=await api('/api/guilds');
+  $('guild').innerHTML=guilds.map(g=>`<option value="${g.id}">${esc(g.name)}</option>`).join('');
+  if(!guilds.length)toast('البوت مو في أي سيرفر. ادعه أول.');
+  pickGuild();loadLib();
+  es=new EventSource('/api/events');
+  es.onmessage=e=>{const s=JSON.parse(e.data);if(s.guildId===gid)render(s)};
+  setInterval(()=>{if(state&&state.current&&!state.paused){state.elapsed++;renderProg()}},1000);
+}
+async function login(){
+  try{await jpost('/login',{password:$('pw').value});location.reload()}catch(e){fail(e)}}
+$('pw').addEventListener('keydown',e=>e.key==='Enter'&&login());
+function pickGuild(){
+  gid=$('guild').value;const g=guilds.find(x=>x.id===gid);if(!g)return;
+  $('vc').innerHTML=g.voice.map(c=>`<option value="${c.id}">🔈 ${esc(c.name)} (${c.members})</option>`).join('');
+  api(`/api/guilds/${gid}/state`).then(s=>{render(s);if(s.channelId)$('vc').value=s.channelId});
+}
+$('guild').onchange=pickGuild;
+const join=()=>post('join',{channelId:$('vc').value}).then(()=>toast('تم'));
+
+function render(s){
+  state=s;const c=s.current;
+  const g=guilds.find(x=>x.id===s.guildId),ch=g&&g.voice.find(v=>v.id===s.channelId);
+  $('room').textContent=s.channelId?`🔈 البوت الحين في الروم: ${ch?ch.name:s.channelId}`:'البوت مو في أي روم — اختر روم من القائمة فوق واضغط "ادخل الروم" (أو شغّل أغنية وراح يدخله).';
+  if(s.channelId)$('vc').value=s.channelId;
+  $('title').textContent=c?c.title:'لا شيء يشتغل';
+  $('sub').textContent=c?`${c.kind==='file'?'📁 مكتبة':'🌐 رابط'} ${c.by?'· '+c.by:''}`:'';
+  $('thumb').style.visibility=c?.thumbnail?'visible':'hidden';if(c?.thumbnail)$('thumb').src=c.thumbnail;
+  $('pbtn').textContent=s.paused?'▶️':'⏸️';
+  $('pbtn').onclick=()=>post(s.paused?'resume':'pause');
+  $('loop').value=s.loop;if(document.activeElement!==$('vol'))$('vol').value=Math.round(s.volume*100);
+  $('err').textContent=s.error?'⚠️ '+s.error:'';
+  $('queue').innerHTML=s.tracks.length?s.tracks.map((t,i)=>`<div class="item"><span class="mut">${i+1}</span><span class="n">${t.kind==='file'?'📁 ':''}${esc(t.title)}</span><span class="mut">${fmt(t.duration)}</span><button class="d" onclick="post('remove',{index:${i}})">✕</button></div>`).join(''):'<div class="mut">فاضية</div>';
+  renderProg();
+}
+function renderProg(){
+  const c=state?.current;if(!c||!c.duration){$('prog').style.width=c?'100%':'0';$('prog').style.opacity=c?.3:1;return}
+  $('prog').style.opacity=1;$('prog').style.width=Math.min(100,state.elapsed/c.duration*100)+'%';
+  $('sub').textContent=`${fmt(state.elapsed)} / ${fmt(c.duration)} · ${c.by||''}`;
+}
+
+async function play(){
+  const q=$('q').value.trim();if(!q)return;
+  try{toast('جاري التحميل...');const r=await jpost(`/api/guilds/${gid}/play`,{query:q,channelId:$('vc').value});
+    toast(`➕ ${r.added>1?r.added+' مقطع':r.first}`);$('q').value='';$('results').innerHTML=''}catch(e){fail(e)}}
+async function doSearch(){
+  const q=$('q').value.trim();if(!q)return;
+  try{const r=await api('/api/search?q='+encodeURIComponent(q));
+    $('results').innerHTML=r.map((t,i)=>`<div class="item">${t.thumbnail?`<img src="${esc(t.thumbnail)}">`:''}<span class="n">${esc(t.title)}</span><span class="mut">${fmt(t.duration)}</span><button class="p" data-u="${esc(t.url)}" onclick="$('q').value=this.dataset.u;play()">＋</button></div>`).join('')}
+  catch(e){fail(e)}}
+
+// ---- المكتبة
+async function loadLib(){
+  const l=await api('/api/library');
+  $('lib').innerHTML=l.length?l.map(f=>`<div class="item"><span class="n">📁 ${esc(f.title)}</span><audio controls preload="none" src="/library-files/${encodeURIComponent(f.file)}"></audio>
+    <button class="p" onclick="playFile(this.dataset.f)" data-f="${esc(f.file)}">▶ شغّل بالبوت</button>
+    <button class="d" onclick="delFile(this.dataset.f)" data-f="${esc(f.file)}">🗑</button></div>`).join(''):'<div class="mut">المكتبة فاضية — ارفع ملفات أو أضف من رابط</div>'}
+async function playFile(f){try{await jpost(`/api/guilds/${gid}/play-file`,{file:f,channelId:$('vc').value});toast('تمت الإضافة')}catch(e){fail(e)}}
+async function delFile(f){if(!confirm('حذف '+f+'؟'))return;try{await jpost('/api/library/delete',{file:f});loadLib()}catch(e){fail(e)}}
+async function upload(files){
+  for(const f of files){try{toast('رفع '+f.name+'...');
+    await api('/api/library/upload?name='+encodeURIComponent(f.name),{method:'POST',body:f})}catch(e){fail(e)}}
+  toast('تم الرفع');loadLib()}
+$('file').onchange=e=>upload(e.target.files);
+const drop=$('drop');
+['dragover','dragenter'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add('over')}));
+['dragleave','drop'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove('over')}));
+drop.addEventListener('drop',e=>upload(e.dataTransfer.files));
+async function importUrl(){
+  const url=$('impurl').value.trim();if(!url)return;
+  try{toast('جاري التحميل والتحويل...');await jpost('/api/library/import',{url,name:$('impname').value});
+    $('impurl').value=$('impname').value='';toast('تمت الإضافة');loadLib()}catch(e){fail(e)}}
+
+// ---- أصوات ديسكورد
+async function loadSounds(kind){
+  try{sounds=await api(kind==='default'?'/api/default-sounds':`/api/guilds/${gid}/sounds`);
+    $('sounds').innerHTML=sounds.length?sounds.map((s,i)=>`<div class="card" style="margin:0"><div><b>${s.emoji||'🔊'} ${esc(s.name)}</b></div>
+      <audio controls preload="none" src="/api/sound/${s.id}" style="width:100%;margin:8px 0"></audio>
+      <div class="row"><a href="/api/sound/${s.id}?dl=1&name=${encodeURIComponent(s.name)}"><button>⬇ تحميل</button></a>
+      <button class="p" onclick="playSounds([sounds[${i}]])">▶ شغّل بالبوت</button>
+      <button onclick="saveOne(${i})">💾 للمكتبة</button></div></div>`).join(''):'<div class="mut">ما فيه أصوات</div>'}
+  catch(e){fail(e)}}
+async function playSounds(list){
+  if(!list.length)return toast('حمّل قائمة أصوات أول');
+  try{toast('جاري السحب والتشغيل...');
+    const r=await jpost(`/api/guilds/${gid}/play-sounds`,{sounds:list,channelId:$('vc').value});
+    toast(`▶ أضفت ${r.added} صوت للتشغيل`);loadLib()}catch(e){fail(e)}}
+async function saveOne(i){try{await jpost('/api/sounds/save',{sounds:[sounds[i]]});toast('تم الحفظ');loadLib()}catch(e){fail(e)}}
+async function saveAll(){if(!sounds.length)return toast('حمّل قائمة أصوات أول');
+  try{toast('جاري الحفظ...');const r=await jpost('/api/sounds/save',{sounds});toast(`تم حفظ ${r.saved.length} صوت`);loadLib()}catch(e){fail(e)}}
+
+// ---- التبويبات
+$('tabs').onclick=e=>{const t=e.target.dataset.t;if(!t)return;
+  document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b===e.target));
+  ['music','lib','snd'].forEach(x=>$('t-'+x).classList.toggle('hide',x!==t))};
+boot();
+</script>
+</body>
+</html>
