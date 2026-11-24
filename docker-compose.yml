@@ -1,0 +1,13 @@
+services:
+  music-bot:
+    build: .
+    container_name: music-bot
+    restart: unless-stopped
+    environment:
+      DISCORD_TOKEN: ${DISCORD_TOKEN}          # توكن البوت (من ملف .env)
+      DASHBOARD_PASSWORD: ${DASHBOARD_PASSWORD} # كلمة سر اللوحة (إلزامي على السيرفر)
+      PORT: "3737"
+    ports:
+      - "3737:3737"
+    volumes:
+      - ./data:/data   # المكتبة والأصوات المحفوظة

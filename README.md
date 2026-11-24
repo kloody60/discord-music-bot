@@ -78,6 +78,15 @@ npm run dist       # يبني ملف التثبيت داخل dist/
 ```
 البيانات (التوكن، المكتبة، yt-dlp) تُحفظ في مجلد بيانات التطبيق (`%APPDATA%\Music Bot`)، وليس داخل المشروع.
 
+### التشغيل على سيرفر (Docker / TrueNAS)
+لو تبي البوت يشتغل 24 ساعة بدون ما يكون جهازك مفتوح:
+```bash
+git clone <repo-url> && cd <repo-folder>
+# أنشئ ملف .env فيه:  DISCORD_TOKEN=...  و  DASHBOARD_PASSWORD=...
+docker compose up -d --build
+```
+اللوحة على `http://IP-السيرفر:3737` وتطلب كلمة السر. المكتبة تنحفظ في مجلد `data/`. على TrueNAS SCALE: ابني الصورة (`docker build -t music-bot:local .`) ثم أنشئ **Custom App** بنفس محتوى `docker-compose.yml`. **لا تشغّل نفس التوكن على جهازك وعلى السيرفر في نفس الوقت**، وإلا كل أمر ينعالج مرتين.
+
 ### تنبيه
 البرنامج للاستخدام الشخصي. أنت المسؤول عن احترام حقوق النشر وشروط ديسكورد ويوتيوب وغيرها عند استخدام الروابط والملفات. لا تسحب محتوى سيرفرات ليس لك صلاحية عليها.
 
@@ -140,6 +149,15 @@ npm start          # run the app
 npm run dist       # build the installer into dist/
 ```
 User data (token, library, yt-dlp) lives in the app data folder (`%APPDATA%\Music Bot`), not in the project.
+
+### Run on a server (Docker / TrueNAS)
+To keep the bot online 24/7 without your PC:
+```bash
+git clone <repo-url> && cd <repo-folder>
+# create a .env with:  DISCORD_TOKEN=...  and  DASHBOARD_PASSWORD=...
+docker compose up -d --build
+```
+The panel is at `http://SERVER-IP:3737` and asks for the password. The library is stored in `data/`. On TrueNAS SCALE: build the image (`docker build -t music-bot:local .`), then create a **Custom App** with the contents of `docker-compose.yml`. **Never run the same token on your PC and the server at the same time**, or every command is handled twice.
 
 ### Disclaimer
 For personal use. You are responsible for respecting copyright and the terms of Discord, YouTube and other services. Don't scrape content from servers you don't have permission for.
