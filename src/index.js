@@ -19,7 +19,11 @@ const commands = [
   new SlashCommandBuilder().setName('playfile').setDescription('شغّل صوت من مكتبتك')
     .addStringOption(o => o.setName('name').setDescription('اسم الملف').setRequired(true).setAutocomplete(true)),
   new SlashCommandBuilder().setName('panel').setDescription('أرسل لوحة أزرار التحكم'),
-  new SlashCommandBuilder().setName('skip').setDescription('تخطي'),
+  new SlashCommandBuilder().setName('skip').setDescription('تخطي للأغنية التالية'),
+  new SlashCommandBuilder().setName('next').setDescription('الأغنية التالية'),
+  new SlashCommandBuilder().setName('previous').setDescription('الرجوع للأغنية السابقة'),
+  new SlashCommandBuilder().setName('nowplaying').setDescription('وش اللي يشتغل الحين'),
+  new SlashCommandBuilder().setName('help').setDescription('قائمة الأوامر'),
   new SlashCommandBuilder().setName('pause').setDescription('إيقاف مؤقت'),
   new SlashCommandBuilder().setName('resume').setDescription('استئناف'),
   new SlashCommandBuilder().setName('stop').setDescription('إيقاف ومسح القائمة'),
@@ -61,7 +65,7 @@ function panel(q) {
         b('skip', '⏭️ تخطي'), b('stop', '⏹️ إيقاف', ButtonStyle.Danger),
         b('loop', '🔁 تكرار'), b('shuffle', '🔀 خلط')),
       new ActionRowBuilder().addComponents(
-        b('vdown', '🔉 -10'), b('vup', '🔊 +10'), b('queue', '📜 القائمة'), b('leave', '👋 اخرج', ButtonStyle.Danger)),
+        b('prev', '⏮️ السابق'), b('vdown', '🔉 -10'), b('vup', '🔊 +10'), b('queue', '📜 القائمة'), b('leave', '👋 اخرج', ButtonStyle.Danger)),
     ],
   };
 }
@@ -97,6 +101,10 @@ async function handleButton(i) {
       ephemeral: true,
       content: s.tracks.length ? s.tracks.slice(0, 15).map((t, n) => `${n + 1}. ${fmt(t)}`).join('\n') : 'القائمة فاضية',
     });
+  }
+  if (id === 'prev') {
+    try { q.previous(); } catch (e) { return i.reply({ content: '❌ ' + e.message, ephemeral: true }); }
+    return i.deferUpdate();
   }
   await i.deferUpdate();
   if (id === 'skip') q.skip();
@@ -136,7 +144,25 @@ client.on('interactionCreate', async i => {
         return i.reply(`📁 **${t.title}**`);
       }
       case 'panel': await i.reply({ content: '🎛️', ephemeral: true }); return sendPanel(q);
-      case 'skip': q.skip(); return i.reply('⏭️');
+      case 'skip':
+      case 'next': q.skip(); return i.reply('⏭️ التالي');
+      case 'previous': q.previous(); return i.reply('⏮️ السابق');
+      case 'nowplaying': {
+        const s = q.state();
+        if (!s.current) return i.reply({ content: 'ما فيه شيء يشتغل', ephemeral: true });
+        const e = new EmbedBuilder().setColor(0x5865f2).setTitle(`🎵 ${fmt(s.current)}`)
+          .setDescription(`${s.paused ? '⏸️ متوقف' : '▶️ يشتغل'} · في الانتظار: ${s.tracks.length}`);
+        if (s.current.thumbnail) e.setThumbnail(s.current.thumbnail);
+        return i.reply({ embeds: [e] });
+      }
+      case 'help': {
+        const e = new EmbedBuilder().setColor(0x22d3ee).setTitle('🎵 أوامر البوت').addFields(
+          { name: 'التشغيل', value: '`/play` رابط أو اسم أغنية (يوتيوب، تيك توك، انستغرام...)\n`/playfile` صوت من مكتبتك\n`/sounds` أصوات السيرفر كملفات' },
+          { name: 'التنقل', value: '`/next` أو `/skip` الأغنية التالية\n`/previous` الأغنية السابقة\n`/nowplaying` وش اللي يشتغل' },
+          { name: 'التحكم', value: '`/pause` إيقاف مؤقت · `/resume` استئناف\n`/stop` إيقاف ومسح القائمة\n`/loop` تكرار · `/shuffle` خلط · `/volume` الصوت\n`/queue` القائمة · `/panel` لوحة الأزرار\n`/leave` خروج البوت' },
+        );
+        return i.reply({ embeds: [e], ephemeral: true });
+      }
       case 'pause': q.pause(); return i.reply('⏸️');
       case 'resume': q.resume(); return i.reply('▶️');
       case 'stop': q.stop(); return i.reply('⏹️');

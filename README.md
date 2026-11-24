@@ -57,7 +57,11 @@ https://discord.com/oauth2/authorize?client_id=YOUR_APPLICATION_ID&scope=bot%20a
 | `/play` | تشغيل من رابط أو بحث |
 | `/playfile` | تشغيل ملف من مكتبتك |
 | `/panel` | إرسال لوحة الأزرار |
-| `/skip` `/pause` `/resume` `/stop` | تحكم |
+| `/next` أو `/skip` | الأغنية التالية |
+| `/previous` | الرجوع للأغنية السابقة |
+| `/nowplaying` | وش اللي يشتغل |
+| `/help` | قائمة الأوامر |
+| `/pause` `/resume` `/stop` | تحكم |
 | `/queue` `/shuffle` `/loop` `/volume` | القائمة والتكرار والصوت |
 | `/sounds` | إرسال أصوات السيرفر كملفات |
 | `/leave` | خروج البوت |

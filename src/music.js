@@ -16,6 +16,7 @@ class GuildQueue {
   constructor(guild) {
     this.guild = guild;
     this.tracks = [];      // المنتظرة
+    this.history = [];     // اللي اشتغلت قبل (للرجوع)
     this.current = null;
     this.loop = 'off';     // off | track | queue
     this.volume = 0.8;
@@ -78,6 +79,7 @@ class GuildQueue {
   /** يشغل الصوت فوراً (من المكتبة) بدون ما يمس القائمة */
   async next() {
     this.cleanupProc();
+    this.pushHistory();
     const t = this.tracks.shift();
     this.current = t || null;
     this.error = null;
@@ -115,10 +117,29 @@ class GuildQueue {
     this.next();
   }
 
+  pushHistory(force = false) {
+    // مع تكرار المقطع ما نسجّله مرة ثانية (إلا لو تخطّيناه فعلا)
+    if (this.current && (force || this.loop !== 'track')) {
+      this.history.push(this.current);
+      if (this.history.length > 30) this.history.shift();
+    }
+  }
+
   skip() {
-    if (this.loop === 'track') this.current = null; // ما نعيد نفس المقطع
+    if (this.loop === 'track') { this.pushHistory(true); this.current = null; } // ما نعيد نفس المقطع
     if (this.player.state.status === AudioPlayerStatus.Idle) this.next();
     else this.player.stop(true); // حدث Idle يكمل للتالي
+  }
+
+  /** يرجع للأغنية اللي قبل (أو يعيد الحالية من أولها لو ما فيه قبلها) */
+  previous() {
+    const prev = this.history.pop();
+    if (!prev && !this.current) throw new Error('ما فيه أغنية قبلها');
+    if (this.current) this.tracks.unshift(this.current);
+    if (prev) this.tracks.unshift(prev);
+    this.current = null; // عشان ما تنحفظ بالسجل مرة ثانية
+    if (this.player.state.status === AudioPlayerStatus.Idle) this.next();
+    else this.player.stop(true);
   }
   pause() { if (this.player.pause()) { this.pausedAt = Date.now(); emit(this.guild.id); } }
   resume() {
@@ -169,7 +190,7 @@ class GuildQueue {
       ? Math.floor(((this.pausedAt || Date.now()) - this.startedAt) / 1000) : 0;
     return {
       guildId: this.guild.id, channelId: this.channelId, current: this.current,
-      tracks: this.tracks, loop: this.loop, volume: this.volume, error: this.error,
+      tracks: this.tracks, hasPrevious: this.history.length > 0, loop: this.loop, volume: this.volume, error: this.error,
       paused: this.player.state.status === AudioPlayerStatus.Paused, elapsed,
     };
   }

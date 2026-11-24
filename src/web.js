@@ -96,7 +96,7 @@ export function startWeb(client) {
     }
     return { added: n };
   }));
-  for (const act of ['skip', 'pause', 'resume', 'stop', 'shuffle', 'destroy'])
+  for (const act of ['previous', 'skip', 'pause', 'resume', 'stop', 'shuffle', 'destroy'])
     app.post(`/api/guilds/:gid/${act}`, wrap(req => { q(req)[act](); }));
   app.post('/api/guilds/:gid/volume', wrap(req => q(req).setVolume(Number(req.body.volume))));
   app.post('/api/guilds/:gid/loop', wrap(req => q(req).setLoop(req.body.mode)));
